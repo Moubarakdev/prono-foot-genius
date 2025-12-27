@@ -1,0 +1,42 @@
+# FastAPI
+fastapi==0.115.6
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# Database
+sqlalchemy[asyncio]==2.0.25
+aiomysql==0.2.0
+pymysql==1.1.0
+alembic==1.13.1
+
+# Redis & Background Tasks
+redis==5.0.1
+celery==5.3.6
+flower==2.0.1
+
+# Auth
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+
+# Validation & Email
+pydantic==2.10.4
+pydantic-settings==2.7.0
+email-validator==2.2.0
+fastapi-mail==1.4.1
+aiosmtplib==2.0.2
+
+# HTTP Client
+httpx==0.28.1
+
+# Web Scraping
+beautifulsoup4==4.12.3
+lxml==5.3.0
+
+# AI
+google-generativeai==0.8.3
+
+# Utils
+python-dotenv==1.0.1
+# Stripe
+stripe==11.3.0
