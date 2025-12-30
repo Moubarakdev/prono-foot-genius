@@ -5,6 +5,7 @@ from .football.api_football import ApiFootballProvider
 from .football.hybrid_provider import HybridFootballProvider
 from .ai.gemini import GeminiAIProvider
 from .ai.ollama import OllamaAIProvider
+from .ai.openai import OpenAIAIProvider
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -32,6 +33,8 @@ def get_ai_provider() -> BaseAIProvider:
         return OllamaAIProvider()
     elif ai_provider == 'gemini':
         return GeminiAIProvider()
+    elif ai_provider == 'openai':
+        return OpenAIAIProvider()
     else:
         # Default to Ollama
         return OllamaAIProvider()

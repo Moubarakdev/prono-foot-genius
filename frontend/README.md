@@ -4,7 +4,7 @@ The modern, responsive frontend for CouponFoot, built with **React**, **TypeScri
 
 ##  Tech Stack
 
-- **Framework**: React 18 + Vite
+- **Framework**: React 19 + Vite
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
 - **State Management**: Zustand
@@ -39,10 +39,12 @@ The modern, responsive frontend for CouponFoot, built with **React**, **TypeScri
 
 ##  Project Structure
 
-- `src/features/`: Feature-based architecture (Auth, Analyze, Coupons, etc.)
+- `src/features/`: Feature-based architecture (Auth, Analyze, Coupons, etc.) containing components, stores, and services
+- `src/pages/`: Route components
+- `src/layout/`: Layout wrappers (DashboardLayout)
 - `src/components/`: Shared UI components
+- `src/hooks/`: Custom React hooks
 - `src/lib/`: Utilities and API client
-- `src/store/`: Global state stores (Zustand)
 - `src/i18n/`: Translation files
 
 ##  Linting & Formatting

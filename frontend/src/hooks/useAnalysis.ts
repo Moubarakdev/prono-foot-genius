@@ -31,6 +31,7 @@ export const useAnalysis = () => {
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
+    const [userContext, setUserContext] = useState('');
 
     // Auto-clear messages
     useEffect(() => {
@@ -117,7 +118,7 @@ export const useAnalysis = () => {
         setLoading(true);
         setErrorMessage(null);
         try {
-            const result = await analyzeService.analyzeDuel(teamA.id, teamB.id);
+            const result = await analyzeService.analyzeDuel(teamA.id, teamB.id, userContext);
             setCurrentAnalysis(result);
             setSelectedTeam(teamA);
             if (result.id) {
@@ -137,7 +138,7 @@ export const useAnalysis = () => {
         setLoading(true);
         setErrorMessage(null);
         try {
-            const result = await analyzeService.analyzeMatch(fixtureId);
+            const result = await analyzeService.analyzeMatch(fixtureId, userContext);
             setCurrentAnalysis(result);
             const chatHist = await chatService.getHistory(result.id);
             setChatMessages(chatHist);
@@ -231,6 +232,8 @@ export const useAnalysis = () => {
         viewHistoryItem,
         resetAnalysis,
         setSuccessMessage,
-        setErrorMessage
+        setErrorMessage,
+        userContext,
+        setUserContext
     };
 };

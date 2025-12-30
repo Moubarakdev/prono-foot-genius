@@ -1,10 +1,9 @@
-@@ -0,0 +1,125 @@
 # ⚽ CouponFoot (FootGenius)
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.11+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688.svg)
-![React](https://img.shields.io/badge/react-18+-61DAFB.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)
+![React](https://img.shields.io/badge/react-19+-61DAFB.svg)
 ![Docker](https://img.shields.io/badge/docker-compose-2496ED.svg)
 
 **CouponFoot** is an advanced, open-source football match analysis and prediction platform powered by Artificial Intelligence. It combines real-time data from multiple sources with LLMs (Google Gemini, Ollama) to provide deep insights, betting coupon evaluations, and interactive chat capabilities.
@@ -53,7 +52,7 @@ graph TD
 
 - **Backend**: FastAPI, SQLAlchemy 2.0 (Async), Alembic, Celery
 - **Database**: MySQL 8.0, Redis
-- **Frontend**: React, Vite, TypeScript, Tailwind CSS, Shadcn/UI
+- **Frontend**: React 19, Vite, TypeScript, Tailwind CSS v4, Shadcn/UI
 - **AI**: Google Gemini Pro, Ollama (Mistral/Llama 2)
 - **DevOps**: Docker Compose
 

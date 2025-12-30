@@ -1,0 +1,2 @@
+﻿src/features/analyze/components/AnalysisResult.tsx(2,1): error TS6133: 'useTranslation' is declared but its value is never read.
+src/features/analyze/components/AnalysisResult.tsx(6,18): error TS1484: 'Variants' is a type and must be imported using a type-only import when 'verbatimModuleSyntax' is enabled.

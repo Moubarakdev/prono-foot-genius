@@ -4,11 +4,13 @@ https://www.football-data.org/
 """
 import httpx
 import time
+import asyncio
 from datetime import datetime, timedelta
 from typing import Any, List, Optional, Dict
 from ..base import BaseFootballProvider
 from app.core.config import get_settings
 from app.core.logger import get_logger
+from app.services.cache_service import cache_service
 
 settings = get_settings()
 logger = get_logger('providers.football_data_org')
@@ -30,6 +32,9 @@ class FootballDataOrgProvider(BaseFootballProvider):
             "X-Auth-Token": settings.football_data_api_key
         }
         
+        # In-memory locks to prevent thundering herd on API calls
+        self._locks = {}
+        
         # Competition IDs mapping
         self.competitions = {
             "premier_league": 2021,  # England
@@ -42,6 +47,12 @@ class FootballDataOrgProvider(BaseFootballProvider):
             "champions_league": 2001,
             "europa_league": 2146,
             "world_cup": 2000
+        }
+        
+        # Mapping team ID to competition ID (for auto-caching)
+        self._team_competition_map = {
+            # This would ideally be populated dynamically or from a config
+            # But we can store it as we discover it
         }
     
     async def _request(
@@ -62,13 +73,23 @@ class FootballDataOrgProvider(BaseFootballProvider):
                     }}
                 )
                 
-                response = await client.get(
-                    f"{self.base_url}/{endpoint}",
-                    headers=self.headers,
-                    params=params or {},
-                    timeout=30.0
-                )
-                response.raise_for_status()
+                max_retries = 2
+                for attempt in range(max_retries + 1):
+                    response = await client.get(
+                        f"{self.base_url}/{endpoint}",
+                        headers=self.headers,
+                        params=params or {},
+                        timeout=30.0
+                    )
+                    
+                    if response.status_code == 429 and attempt < max_retries:
+                        retry_after = int(response.headers.get("Retry-After", 2))
+                        logger.warning(f"⏳ Rate limit hit (429). Retrying in {retry_after}s... (Attempt {attempt + 1}/{max_retries})")
+                        await asyncio.sleep(retry_after)
+                        continue
+                        
+                    response.raise_for_status()
+                    break
                 
                 duration_ms = (time.time() - start_time) * 1000
                 logger.log_external_api(
@@ -140,10 +161,29 @@ class FootballDataOrgProvider(BaseFootballProvider):
         next: Optional[int] = None
     ) -> List[Dict[str, Any]]:
         """
-        Get fixtures from Football-Data.org.
-        
-        Returns fixtures in standardized format compatible with existing code.
+        Get fixtures from Football-Data.org with competition-level caching.
         """
+        # 1. Check if we can use competition cache
+        if team:
+            # For a team, we first try to find which competition they belong to
+            # Actually, football-data.org doesn't give us the league in the team search easily
+            # But if we are in an analysis context, MatchAnalyzer knows the league_id
+            pass
+
+        if league:
+            # If we have a league ID, try to get all matches for that league from cache
+            all_matches = await self.get_competition_matches(league)
+            if all_matches and team:
+                # Filter for the specific team
+                team_matches = [
+                    m for m in all_matches
+                    if m["teams"]["home"]["id"] == team or m["teams"]["away"]["id"] == team
+                ]
+                return team_matches[:next] if next else team_matches
+            elif all_matches:
+                return all_matches[:next] if next else all_matches
+
+        # 2. Fallback to direct API call if no cache
         params = {}
         
         if date:
@@ -314,9 +354,15 @@ class FootballDataOrgProvider(BaseFootballProvider):
         # Search in major competitions
         all_teams = []
         
-        for comp_id in [2021, 2014, 2002, 2019, 2015]:  # Major leagues
-            result = await self._request(f"competitions/{comp_id}/teams")
-            teams = result.get("teams", [])
+        for comp_id in [2021, 2014, 2002, 2019, 2015, 2003, 2017]:  # Major leagues
+            cache_key = f"fd_teams_{comp_id}"
+            teams = await cache_service.get(cache_key)
+            
+            if not teams:
+                result = await self._request(f"competitions/{comp_id}/teams")
+                teams = result.get("teams", [])
+                if teams:
+                    await cache_service.set(cache_key, teams, expire=86400) # Cache for 24h
             
             for team in teams:
                 if name.lower() in team.get("name", "").lower():
@@ -413,6 +459,47 @@ class FootballDataOrgProvider(BaseFootballProvider):
         logger.warning("Predictions not available in Football-Data.org")
         return {}
     
+    async def get_competition_matches(self, competition_id: int) -> List[Dict[str, Any]]:
+        """
+        Get all matches for a competition (caching for 1 hour).
+        This allows analyzing multiple teams in the same league with 0 API cost.
+        """
+        cache_key = f"fd_competition_matches_{competition_id}"
+        
+        # Try Cache
+        cached = await cache_service.get(cache_key)
+        if cached:
+            return cached
+            
+        # Lock to prevent thundering herd
+        if competition_id not in self._locks:
+            self._locks[competition_id] = asyncio.Lock()
+            
+        async with self._locks[competition_id]:
+            # Re-check cache after acquiring lock
+            cached = await cache_service.get(cache_key)
+            if cached:
+                return cached
+                
+            # Fetch from API
+            logger.info(f"🔄 Fetching all matches for competition {competition_id}")
+            result = await self._request(f"competitions/{competition_id}/matches")
+            matches = result.get("matches", [])
+            
+            # Convert all to standard format
+            standardized = []
+            for match in matches:
+                try:
+                    standardized.append(self._convert_match_format(match))
+                except Exception as e:
+                    continue
+                    
+            # Cache for 1 hour
+            if standardized:
+                await cache_service.set(cache_key, standardized, expire=3600)
+                
+            return standardized
+
     async def search_fixture(
         self, 
         home_team_name: str, 

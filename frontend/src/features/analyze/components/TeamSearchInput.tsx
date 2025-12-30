@@ -108,7 +108,7 @@ export const TeamSearchInput: React.FC<TeamSearchInputProps> = ({
                     </div>
 
                     {showResults && results.length > 0 && (
-                        <div className="absolute top-full left-0 w-full mt-2 bg-navy/95 glass border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-emerald/20">
+                        <div className="absolute top-full left-0 w-full mt-2 bg-[#0B1221]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] max-h-60 overflow-y-auto custom-scrollbar">
                             {results.map((team) => (
                                 <button
                                     key={team.id}

@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     app_name: str = "FootGenius API"
     debug: bool = False
     api_v1_str: str = "/api/v1"
+    ai_provider: str = "ollama"  # select: ollama, gemini, openai
     
     # Database
     database_url: str
@@ -27,6 +28,8 @@ class Settings(BaseSettings):
     football_api_key: str = ""  # Legacy API-Football (RapidAPI) - deprecated
     football_data_api_key: str = ""  # Football-Data.org API key (free tier)
     gemini_api_key: str = ""
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4-turbo-preview"  # or gpt-3.5-turbo
     stripe_api_key: str = ""
     stripe_webhook_secret: str = ""
     stripe_price_starter: str = "price_1Sk0WHGdRbLVz7Fd6R3zBbUG"  # Stripe Price ID for Starter plan

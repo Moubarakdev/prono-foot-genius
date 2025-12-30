@@ -1,4 +1,5 @@
 import { apiClient } from '../../../lib/api-client';
+import i18n from '../../../i18n/config';
 import type {
     CouponSelection,
     CouponCreate,
@@ -62,7 +63,9 @@ function parseOddsData(oddsData: any[]): ParsedOdds | null {
 
 export const couponService = {
     createCoupon: async (data: CouponCreate) => {
-        const response = await apiClient.post('/coupons/create', data);
+        const response = await apiClient.post('/coupons/create', data, {
+            params: { lang: i18n.language }
+        });
         return response.data;
     },
 
@@ -88,7 +91,9 @@ export const couponService = {
     },
 
     reanalyzeCoupon: async (id: string) => {
-        const response = await apiClient.put(`/coupons/${id}/reanalyze`);
+        const response = await apiClient.put(`/coupons/${id}/reanalyze`, null, {
+            params: { lang: i18n.language }
+        });
         return response.data;
     },
 

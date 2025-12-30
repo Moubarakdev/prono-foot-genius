@@ -1,9 +1,10 @@
 import asyncio
 from datetime import datetime
-from typing import Annotated
+from datetime import datetime
+from typing import Annotated, Optional
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -40,9 +41,20 @@ async def analyze_custom_match(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     football_api: FootballProvider,
-    ai_service: AIProvider
+    ai_service: AIProvider,
+    accept_language: Annotated[Optional[str], Header()] = None,
+    lang: Annotated[Optional[str], Query()] = None
 ):
     """Analyze a custom matchup between two teams."""
+    # Determine language: Query param > Header > Default 'fr'
+    language = "fr"
+    if lang:
+        language = lang.lower()[:2]
+    elif accept_language:
+        language = accept_language.split(",")[0].lower()[:2]
+    
+    if language not in ["fr", "en", "de"]:
+        language = "fr"
     # Check limit (handled by MatchAnalyzer)
 
     # 1. Get Team Details
@@ -71,11 +83,11 @@ async def analyze_custom_match(
            (f_home_id == request.away_team_id and f_away_id == request.home_team_id):
            
            # Use standard analysis
-           analysis = await analyzer.analyze(upcoming_fixture, current_user)
+           analysis = await analyzer.analyze(upcoming_fixture, current_user, request.user_context)
            return analysis
 
     # 4. If no upcoming fixture found, perform Hypothetical Analysis
-    analysis = await analyzer.analyze_custom(home_team, away_team, h2h_data, current_user)
+    analysis = await analyzer.analyze_custom(home_team, away_team, h2h_data, current_user, request.user_context, language=language)
     return analysis
 
 
@@ -85,9 +97,20 @@ async def analyze_match(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     football_api: FootballProvider,
-    ai_service: AIProvider
+    ai_service: AIProvider,
+    accept_language: Annotated[Optional[str], Header()] = None,
+    lang: Annotated[Optional[str], Query()] = None
 ):
     """Analyze a match using AI."""
+    # Determine language
+    language = "fr"
+    if lang:
+        language = lang.lower()[:2]
+    elif accept_language:
+        language = accept_language.split(",")[0].lower()[:2]
+    
+    if language not in ["fr", "en", "de"]:
+        language = "fr"
     # Check limit (handled by MatchAnalyzer)
     
     # Get fixture data
@@ -119,7 +142,7 @@ async def analyze_match(
         )
     
     analyzer = MatchAnalyzer(football_api, ai_service, db)
-    analysis = await analyzer.analyze(fixture, current_user)
+    analysis = await analyzer.analyze(fixture, current_user, request.user_context, language=language)
     return analysis
 
 
@@ -158,7 +181,7 @@ async def get_analysis_history(
 
 @router.get("/{analysis_id}", response_model=MatchAnalysisResponse)
 async def get_analysis(
-    analysis_id: uuid.UUID,
+    analysis_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)]
 ):
@@ -181,49 +204,28 @@ async def get_analysis(
     analysis = result.scalar_one_or_none()
     
     if not analysis:
-        logger.warning(
-            f"❌ Analysis {analysis_id} not found or access denied",
-            extra={'extra_data': {
-                'analysis_id': str(analysis_id),
-                'user_id': str(current_user.id)
-            }}
-        )
+        # Debugging 404 more aggressively
+        logger.warning(f"DEBUG 404: Analysis not found. ID: '{analysis_id}' (user: {current_user.id})")
+        # Try finding it without the user filter to see if it's an ownership issue
+        raw_res = await db.execute(select(MatchAnalysis).where(MatchAnalysis.id == analysis_id))
+        raw_analysis = raw_res.scalar_one_or_none()
+        if raw_analysis:
+            logger.warning(f"DEBUG 404: Analysis {analysis_id} EXISTS but owner is {raw_analysis.user_id}")
+        else:
+            logger.warning(f"DEBUG 404: Analysis {analysis_id} DOES NOT EXIST in DB at all.")
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Analysis not found"
         )
     
-    logger.info(
-        f"✅ Analysis {analysis_id} retrieved successfully",
-        extra={'extra_data': {'analysis_id': str(analysis_id)}}
-    )
-    
-    return MatchAnalysisResponse(
-        id=analysis.id,
-        fixture_id=analysis.fixture_id,
-        home_team=analysis.home_team,
-        away_team=analysis.away_team,
-        league_name=analysis.league_name,
-        match_date=analysis.match_date,
-        predictions=PredictionResult(
-            home=analysis.prediction_home,
-            draw=analysis.prediction_draw,
-            away=analysis.prediction_away
-        ),
-        predicted_outcome=analysis.predicted_outcome,
-        confidence_score=analysis.confidence_score,
-        summary=analysis.summary,
-        key_factors=analysis.key_factors,
-        scenarios=[ScenarioResult(**s) for s in analysis.scenarios],
-        actual_result=analysis.actual_result,
-        was_correct=analysis.was_correct,
-        created_at=analysis.created_at
-    )
+    logger.info(f"✅ Analysis {analysis_id} retrieved successfully for {current_user.email}")
+    return analysis
 
 
 @router.post("/{analysis_id}/chat", response_model=ChatMessageResponse)
 async def chat_about_match(
-    analysis_id: uuid.UUID,
+    analysis_id: str,
     chat_req: ChatMessageCreate,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -294,7 +296,7 @@ async def chat_about_match(
 
 @router.get("/{analysis_id}/chat/history", response_model=ChatHistoryResponse)
 async def get_chat_history(
-    analysis_id: uuid.UUID,
+    analysis_id: str,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)]
 ):

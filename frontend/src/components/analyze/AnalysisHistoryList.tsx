@@ -11,6 +11,8 @@ interface HistoryItem {
     id: string;
     home_team: string;
     away_team: string;
+    home_team_logo?: string;
+    away_team_logo?: string;
     match_date: string;
     created_at: string;
     predicted_outcome: string;
@@ -69,8 +71,18 @@ export const AnalysisHistoryList: React.FC<AnalysisHistoryListProps> = ({
                     className="glass p-6 rounded-2xl flex items-center justify-between hover:bg-white/5 transition-all cursor-pointer group border border-transparent hover:border-white/10 active:scale-[0.98]"
                 >
                     <div className="flex items-center space-x-6">
-                        <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover:text-emerald transition-colors">
-                            <BarChart2 size={24} />
+                        <div className="w-16 h-12 rounded-xl bg-white/5 flex items-center justify-center px-2 space-x-1 group-hover:bg-white/10 transition-colors shrink-0">
+                            {item.home_team_logo ? (
+                                <img src={item.home_team_logo} alt="" className="w-6 h-6 object-contain" />
+                            ) : (
+                                <BarChart2 size={16} className="text-gray-600" />
+                            )}
+                            <div className="w-[1px] h-4 bg-white/10"></div>
+                            {item.away_team_logo ? (
+                                <img src={item.away_team_logo} alt="" className="w-6 h-6 object-contain" />
+                            ) : (
+                                <BarChart2 size={16} className="text-gray-600" />
+                            )}
                         </div>
                         <div>
                             <h4 className="font-black text-white group-hover:text-emerald transition-colors">

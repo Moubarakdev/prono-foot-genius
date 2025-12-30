@@ -40,7 +40,7 @@ export const LoginPage = () => {
             <div className="relative z-10 flex flex-col justify-center px-6 lg:px-20 py-12">
                 <div className="absolute top-6 left-6 lg:left-20 flex items-center justify-between w-[calc(100%-3rem)] lg:w-[calc(100%-10rem)]">
                     <Link to="/" className="flex items-center space-x-2 group">
-                        <img src={logo} alt="FootIntel" className="h-8 w-auto" />
+                        <img src={logo} alt="Foot Genius" className="h-8 w-auto" />
                     </Link>
                     <LanguageSwitcher />
                 </div>
@@ -117,7 +117,7 @@ export const LoginPage = () => {
                 <div className="relative z-10 max-w-lg">
                     <div className="glass p-10 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl bg-navy/40">
                         <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald to-cyan flex items-center justify-center mb-8 shadow-lg">
-                            <img src={logo} alt="FootIntel" className="h-10 w-auto" />
+                            <img src={logo} alt="Foot Genius" className="h-10 w-auto" />
                         </div>
 
                         <h2 className="text-3xl font-black italic mb-6">

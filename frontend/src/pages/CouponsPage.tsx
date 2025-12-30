@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Ticket, Loader2, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Plus, PieChart, Activity, Zap, Sparkles, RefreshCw } from 'lucide-react';
+import { Ticket, Loader2, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Plus, PieChart, Activity, Zap, Sparkles, RefreshCw, ChevronLeft, Share2, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { couponService, type ParsedOdds } from '../features/coupons/services/coupon-service';
 import { CouponList, CouponBuilder } from '../components/coupons';
 import { useCoupons } from '../hooks';
@@ -56,12 +57,12 @@ export const CouponsPage: React.FC = () => {
             });
             setIsBuilderOpen(false);
             setNewSelections([]);
-            setSuccessMessage('✅ Coupon créé avec succès !');
+            setSuccessMessage(t('coupons.notifications.success'));
             setTimeout(() => setSuccessMessage(null), 3000);
             loadCoupons();
         } catch (err: any) {
             console.error(err);
-            setErrorMessage(err?.response?.data?.detail || '❌ Erreur lors de la création du coupon');
+            setErrorMessage(err?.response?.data?.detail || t('coupons.notifications.error'));
             setTimeout(() => setErrorMessage(null), 5000);
         } finally {
             setIsCreating(false);
@@ -133,8 +134,6 @@ export const CouponsPage: React.FC = () => {
         }
     };
 
-    // NO DEBOUNCED SEARCH NEEDED HERE ANYMORE AS IT'S IN TeamSearchInput
-
     const getRiskColor = (level: string) => {
         switch (level.toLowerCase()) {
             case 'low': return 'text-emerald border-emerald/20 bg-emerald/5';
@@ -146,288 +145,348 @@ export const CouponsPage: React.FC = () => {
     };
 
     return (
-        <div className="space-y-8 max-w-6xl mx-auto pb-20 relative">
-            {/* Success Message */}
-            {successMessage && (
-                <div className="fixed top-4 right-4 z-[100] glass p-4 rounded-xl border-2 border-emerald bg-emerald/10 animate-in slide-in-from-top duration-300">
-                    <p className="text-emerald font-bold flex items-center space-x-2">
-                        <CheckCircle2 size={20} />
-                        <span>{successMessage}</span>
-                    </p>
-                </div>
-            )}
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-8 max-w-6xl mx-auto pb-20 relative"
+        >
+            {/* Notifications */}
+            <AnimatePresence>
+                {successMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, x: 20 }}
+                        animate={{ opacity: 1, y: 0, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="fixed top-24 right-8 z-[100] glass-emerald p-4 rounded-2xl border-emerald/50 shadow-[0_0_30px_rgba(16,185,129,0.2)]"
+                    >
+                        <p className="text-emerald font-black flex items-center space-x-3 text-sm tracking-wide">
+                            <CheckCircle2 size={18} />
+                            <span>{successMessage}</span>
+                        </p>
+                    </motion.div>
+                )}
 
-            {/* Error Message */}
-            {errorMessage && (
-                <div className="fixed top-4 right-4 z-[100] glass p-4 rounded-xl border-2 border-red-500 bg-red-500/10 animate-in slide-in-from-top duration-300">
-                    <p className="text-red-500 font-bold flex items-center space-x-2">
-                        <XCircle size={20} />
-                        <span>{errorMessage}</span>
-                    </p>
-                </div>
-            )}
+                {errorMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, x: 20 }}
+                        animate={{ opacity: 1, y: 0, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="fixed top-24 right-8 z-[100] glass p-4 rounded-2xl border-red-500/50 bg-red-500/10"
+                    >
+                        <p className="text-red-400 font-black flex items-center space-x-3 text-sm tracking-wide">
+                            <XCircle size={18} />
+                            <span>{errorMessage}</span>
+                        </p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-in slide-in-from-top duration-700">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                        <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase">{t('coupons.list.title')}</h2>
-                        {refreshing && (
-                            <div className="flex items-center gap-2 text-emerald text-xs animate-pulse">
-                                <Activity size={14} className="animate-spin" />
-                                <span className="font-bold">{t('common.refreshing')}</span>
-                            </div>
-                        )}
-                    </div>
-                    <p className="text-gray-400 font-medium">{t('coupons.create.subtitle')}</p>
-                </div>
-
-                <button
-                    onClick={() => setIsBuilderOpen(true)}
-                    className="btn-primary px-8 py-3 flex items-center space-x-2 cursor-pointer"
-                >
-                    <Plus size={20} />
-                    <span className="font-black uppercase tracking-widest text-xs">{t('coupons.create.title')}</span>
-                </button>
-            </div>
-
-            {!selectedCoupon ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-700">
-                    <div className="lg:col-span-2 space-y-4">
-                        <CouponList
-                            coupons={coupons}
-                            loading={loading}
-                            onViewCoupon={viewCouponDetail}
-                        />
-                    </div>
-
-                    {/* Sidebar Stats */}
-                    <div className="space-y-6">
-                        <div className="glass p-8 rounded-[2.5rem] border-emerald/10 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                                <Zap size={80} className="text-emerald" />
-                            </div>
-                            <h3 className="text-xl font-black italic uppercase mb-6 flex items-center gap-2">
-                                <Sparkles className="text-emerald" size={20} />
-                                Suggestions IA
-                            </h3>
-
-                            <div className="space-y-4">
-                                {dailyCoupons.length > 0 ? (
-                                    dailyCoupons.map((daily) => (
-                                        <div
-                                            key={daily.id}
-                                            onClick={() => viewCouponDetail(daily.id)}
-                                            className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald/20 transition-all cursor-pointer group/item"
-                                        >
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-emerald bg-emerald/10 px-2 py-0.5 rounded">
-                                                    {daily.coupon_type.split('_')[1]}
-                                                </span>
-                                                <span className="text-xs font-black text-white italic">{t('coupons.odds')}: {daily.total_odds}</span>
-                                            </div>
-                                            <p className="text-xs text-gray-400 font-medium">{t('coupons.probability')}: {Math.round(daily.success_probability * 100)}%</p>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-6 text-gray-500 text-xs font-bold italic">
-                                        Génération des suggestions en cours...
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="glass p-8 rounded-3xl space-y-6 border-t-4 border-emerald">
-                            <h3 className="font-black text-xs uppercase tracking-widest text-gray-500 flex items-center space-x-2">
-                                <PieChart size={16} className="text-emerald" />
-                                <span>{t('features.tracking.title')}</span>
-                            </h3>
-
-                            <div className="space-y-4">
-                                {[
-                                    { label: t('dashboard.stats.successRate'), val: coupons.length > 0 ? `${Math.round((coupons.filter(c => c.status === 'won').length / coupons.length) * 100)}%` : '0%', sub: t('dashboard.stats.increase'), color: 'bg-emerald' },
-                                    { label: t('coupons.confidence'), val: coupons.length > 0 ? `${(coupons.reduce((acc, c) => acc + c.success_probability, 0) / coupons.length * 10).toFixed(1)}/10` : '0/10', sub: 'Moyenne par coupon', color: 'bg-white' }
-                                ].map((stat) => (
-                                    <div key={stat.label} className="space-y-2">
-                                        <div className="flex justify-between items-end">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase">{stat.label}</span>
-                                            <span className="text-lg font-black text-white">{stat.val}</span>
-                                        </div>
-                                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                            <div className={cn("h-full rounded-full transition-all duration-1000", stat.color)} style={{ width: stat.val.includes('%') ? stat.val : `${parseFloat(stat.val) * 10}%` }}></div>
-                                        </div>
-                                        <p className="text-[9px] font-bold text-gray-600 uppercase italic">{stat.sub}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        <div className="glass p-8 rounded-3xl bg-linear-to-br from-emerald/20 to-transparent border border-emerald/10">
-                            <TrendingUp className="text-emerald mb-4" size={32} />
-                            <h3 className="text-lg font-black text-white italic uppercase leading-none mb-2">{t('coupons.premiumTip.title')}</h3>
-                            <p className="text-xs text-gray-400 leading-relaxed font-medium" dangerouslySetInnerHTML={{ __html: t('coupons.premiumTip.desc') }}>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            ) : (
-                /* Detailed View */
-                <div className="space-y-8 animate-in zoom-in-95 duration-500">
-                    <div className="flex items-center justify-between">
-                        <button
-                            onClick={clearSelectedCoupon}
-                            className="text-gray-500 hover:text-white transition-colors text-xs font-black uppercase tracking-widest flex items-center space-x-2 cursor-pointer"
-                        >
-                            <span>← {t('common.close')}</span>
-                        </button>
-
-                        <button
-                            onClick={handleReanalyzeCoupon}
-                            disabled={reanalyzing}
-                            className="glass px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest text-emerald hover:bg-emerald/10 transition-all border border-emerald/20 flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {reanalyzing ? (
-                                <>
-                                    <Loader2 size={14} className="animate-spin" />
-                                    <span>Analyse en cours...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <RefreshCw size={14} />
-                                    <span>🔄 Relancer l'analyse</span>
-                                </>
-                            )}
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2 space-y-8">
-                            <div className="glass p-8 rounded-3xl relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-8 opacity-5">
-                                    <Ticket size={160} />
-                                </div>
-
-                                <div className="flex items-start justify-between mb-10">
-                                    <div>
-                                        <span className={cn(
-                                            "px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest border mb-4 inline-block",
-                                            getRiskColor(selectedCoupon.risk_level)
-                                        )}>
-                                            {t('coupons.risk.level')}: {selectedCoupon.risk_level}
-                                        </span>
-                                        <h3 className="text-5xl font-black text-white italic leading-none">{t('coupons.totalOdds')}: {selectedCoupon.total_odds}</h3>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('coupons.confidence')}</p>
-                                        <p className="text-5xl font-black text-emerald italic leading-none">{Math.round(selectedCoupon.success_probability * 100)}%</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <h4 className="text-xs font-black text-emerald uppercase tracking-widest flex items-center space-x-2">
-                                        <AlertTriangle size={14} />
-                                        <span>{t('coupons.recommendation')}</span>
-                                    </h4>
-                                    <p className="text-lg font-bold text-white italic leading-relaxed">
-                                        "{selectedCoupon.ai_recommendation}"
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <h3 className="font-black text-sm uppercase tracking-widest text-gray-500">{t('coupons.selections')} ({selectedCoupon.selections.length})</h3>
-                                <div className="space-y-3">
-                                    {selectedCoupon.selections.map((match: any) => (
-                                        <div key={match.id} className="glass p-6 rounded-2xl flex items-center justify-between group hover:bg-white/5 transition-all">
-                                            <div className="flex items-center space-x-6">
-                                                <div className="text-center w-10">
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase">{t('coupons.odds')}</p>
-                                                    <p className="text-lg font-black text-white">{isNaN(match.odds) ? '1.50' : Number(match.odds).toFixed(2)}</p>
-                                                </div>
-                                                <div className="h-10 w-px bg-white/10"></div>
-                                                <div>
-                                                    <p className="text-base font-black text-white">
-                                                        {match.home_team} <span className="opacity-20 italic font-medium px-2">{t('analyze.vs')}</span> {match.away_team}
-                                                    </p>
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-0.5">
-                                                        {match.selection_type} • {new Date(match.match_date).toLocaleDateString()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="text-[10px] font-black text-gray-500 uppercase">{t('coupons.aiProba')}</p>
-                                                <p className="text-lg font-black text-white">{Math.round(match.ai_probability * 100)}%</p>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div className="glass p-8 rounded-3xl space-y-6">
-                                <h3 className="font-black text-xs uppercase tracking-widest text-orange-500 flex items-center space-x-2">
-                                    <AlertTriangle size={16} />
-                                    <span>{t('coupons.attention')}</span>
-                                </h3>
-                                <div className="space-y-4">
-                                    {selectedCoupon.ai_analysis && (
-                                        <div className="space-y-4">
-                                            <div className="p-4 bg-emerald/5 border border-emerald/10 rounded-xl">
-                                                <p className="text-[10px] font-black text-emerald uppercase tracking-widest mb-1">{t('coupons.analysis.global')}</p>
-                                                <p className="text-xs text-gray-300 italic">"{selectedCoupon.ai_analysis.detailed_analysis}"</p>
-                                            </div>
-                                            <div className="p-4 bg-white/5 border border-white/5 rounded-xl flex justify-between">
-                                                <div>
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Cohérence</p>
-                                                    <p className="text-sm font-black text-white">{Math.round((selectedCoupon.ai_analysis.coherence_score || 0) * 100)}%</p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('coupons.analysis.weakLink')}</p>
-                                                    <p className="text-[10px] font-bold text-red-500 uppercase max-w-[120px] truncate">{selectedCoupon.ai_analysis.weakest_link}</p>
-                                                </div>
-                                            </div>
+            <AnimatePresence mode="wait">
+                {!selectedCoupon ? (
+                    <motion.div
+                        key="list"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className="space-y-8"
+                    >
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                    <h2 className="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">{t('coupons.list.title')}</h2>
+                                    {refreshing && (
+                                        <div className="flex items-center gap-2 text-emerald text-xs font-black uppercase tracking-widest bg-emerald/10 px-3 py-1 rounded-full">
+                                            <Activity size={12} className="animate-spin" />
+                                            <span>{t('common.refreshing')}</span>
                                         </div>
                                     )}
-
-                                    {selectedCoupon.weak_points && selectedCoupon.weak_points.length > 0 ? (
-                                        selectedCoupon.weak_points.map((point: string, idx: number) => (
-                                            <div key={idx} className="p-4 bg-orange-500/5 border border-orange-500/10 rounded-xl space-y-1">
-                                                <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest">{t('coupons.riskDetected')}</p>
-                                                <p className="text-xs font-bold text-gray-300 italic">"{point}"</p>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-xs text-gray-500 italic">{t('coupons.noWeakness')}</p>
-                                    )}
                                 </div>
+                                <p className="text-gray-500 font-bold uppercase text-[10px] tracking-[0.2em]">{t('coupons.create.subtitle')}</p>
+                            </div>
 
-                                {selectedCoupon.ai_analysis?.selection_insights && (
-                                    <div className="pt-4 space-y-3">
-                                        <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('coupons.analysis.matchInsights')}</h4>
-                                        {selectedCoupon.ai_analysis.selection_insights.map((insight: any, idx: number) => (
-                                            <div key={idx} className="p-3 bg-white/5 rounded-xl border border-white/5">
-                                                <p className="text-[10px] font-bold text-white mb-1">{insight.match}</p>
-                                                <p className="text-[10px] text-gray-400 font-medium italic">"{insight.insight}"</p>
+                            <button
+                                onClick={() => setIsBuilderOpen(true)}
+                                className="btn-primary flex items-center space-x-3 group"
+                            >
+                                <Plus size={20} className="group-hover:rotate-90 transition-transform duration-500" />
+                                <span>{t('coupons.create.title')}</span>
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2">
+                                <CouponList
+                                    coupons={coupons}
+                                    loading={loading}
+                                    onViewCoupon={viewCouponDetail}
+                                />
+                            </div>
+
+                            {/* Sidebar Stats */}
+                            <div className="space-y-6">
+                                <motion.div
+                                    whileHover={{ y: -5 }}
+                                    className="glass p-8 rounded-[2.5rem] border-emerald/10 relative overflow-hidden group/card"
+                                >
+                                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover/card:opacity-10 group-hover/card:scale-125 transition-all duration-700">
+                                        <Zap size={100} className="text-emerald" />
+                                    </div>
+                                    <h3 className="text-xs font-black text-emerald uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
+                                        <Sparkles size={16} />
+                                        {t('coupons.details.aiSuggestions')}
+                                    </h3>
+
+                                    <div className="space-y-4">
+                                        {dailyCoupons.length > 0 ? (
+                                            dailyCoupons.map((daily) => (
+                                                <div
+                                                    key={daily.id}
+                                                    onClick={() => viewCouponDetail(daily.id)}
+                                                    className="p-5 bg-white/5 rounded-2xl border border-white/5 hover:border-emerald/30 hover:bg-white/10 transition-all cursor-pointer group/item flex items-center justify-between"
+                                                >
+                                                    <div>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-emerald bg-emerald/10 px-2 py-0.5 rounded">
+                                                                {daily.coupon_type.split('_')[1]}
+                                                            </span>
+                                                            <span className="text-xs font-black text-white italic">{t('coupons.odds')}: {daily.total_odds}</span>
+                                                        </div>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{t('coupons.probability')}: {Math.round(daily.success_probability * 100)}%</p>
+                                                    </div>
+                                                    <ChevronRight size={16} className="text-gray-700 group-hover/item:text-emerald group-hover/item:translate-x-1 transition-all" />
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-10">
+                                                <Loader2 size={32} className="mx-auto text-emerald/20 animate-spin mb-3" />
+                                                <p className="text-[10px] text-gray-600 font-black uppercase tracking-widest italic">
+                                                    {t('coupons.notifications.generatingSuggestions')}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+
+                                <div className="glass p-8 rounded-[2.5rem] space-y-6 border-t-4 border-emerald">
+                                    <h3 className="font-black text-[10px] uppercase tracking-[0.2em] text-gray-500 flex items-center space-x-2">
+                                        <PieChart size={16} className="text-emerald" />
+                                        <span>{t('features.tracking.title')}</span>
+                                    </h3>
+
+                                    <div className="space-y-6">
+                                        {[
+                                            { label: t('dashboard.stats.successRate'), val: coupons.length > 0 ? `${Math.round((coupons.filter(c => c.status === 'won').length / coupons.length) * 100)}%` : '0%', sub: t('dashboard.stats.increase'), color: 'bg-emerald' },
+                                            { label: t('coupons.confidence'), val: coupons.length > 0 ? `${(coupons.reduce((acc, c) => acc + c.success_probability, 0) / coupons.length * 10).toFixed(1)}/10` : '0/10', sub: t('coupons.details.averagePerCoupon'), color: 'bg-white' }
+                                        ].map((stat) => (
+                                            <div key={stat.label} className="space-y-3">
+                                                <div className="flex justify-between items-end">
+                                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{stat.label}</span>
+                                                    <span className="text-xl font-black text-white italic">{stat.val}</span>
+                                                </div>
+                                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: stat.val.includes('%') ? stat.val : `${parseFloat(stat.val) * 10}%` }}
+                                                        transition={{ duration: 1.5, ease: "easeOut" }}
+                                                        className={cn("h-full rounded-full shadow-[0_0_10px_rgba(16,185,129,0.3)]", stat.color)}
+                                                    />
+                                                </div>
+                                                <p className="text-[9px] font-black text-emerald uppercase italic tracking-tighter opacity-60">{stat.sub}</p>
                                             </div>
                                         ))}
                                     </div>
-                                )}
-
+                                </div>
                             </div>
+                        </div>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="detail"
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        className="space-y-8"
+                    >
+                        <div className="flex items-center justify-between">
+                            <button
+                                onClick={clearSelectedCoupon}
+                                className="glass px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white hover:bg-white/5 transition-all flex items-center space-x-3 group"
+                            >
+                                <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                                <span>{t('common.close')}</span>
+                            </button>
 
-                            <div className="glass p-8 rounded-3xl space-y-4 text-center">
-                                <div className="hidden"></div>
+                            <div className="flex gap-4">
                                 <button
                                     onClick={handleShareCoupon}
-                                    className="w-full btn-primary py-4 uppercase font-black text-xs tracking-widest mt-4 hover:scale-105 transition-transform"
+                                    className="glass px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-white/5 transition-all flex items-center space-x-3"
                                 >
-                                    {t('coupons.share')}
+                                    <Share2 size={16} />
+                                    <span>{t('coupons.actions.share')}</span>
+                                </button>
+                                <button
+                                    onClick={handleReanalyzeCoupon}
+                                    disabled={reanalyzing}
+                                    className="glass px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-emerald hover:bg-emerald/10 transition-all border border-emerald/20 flex items-center space-x-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {reanalyzing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                                    <span>{reanalyzing ? t('coupons.actions.analyzing') : t('coupons.actions.reanalyze')}</span>
                                 </button>
                             </div>
                         </div>
-                    </div>
-                </div>
-            )}
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 space-y-8">
+                                <div className="glass-emerald p-10 rounded-[3rem] relative overflow-hidden shadow-[0_0_50px_rgba(16,185,129,0.1)]">
+                                    <div className="absolute -top-20 -right-20 opacity-5 rotate-12">
+                                        <Ticket size={300} className="text-emerald" />
+                                    </div>
+
+                                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+                                        <div className="space-y-2">
+                                            <span className={cn(
+                                                "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.3em] border shadow-sm inline-block mb-3",
+                                                getRiskColor(selectedCoupon.risk_level)
+                                            )}>
+                                                {t('coupons.risk.label')}: {t(`coupons.risk.${selectedCoupon.risk_level.toLowerCase()}`)}
+                                            </span>
+                                            <h3 className="text-6xl md:text-7xl font-black text-white italic tracking-tighter leading-none">
+                                                {t('coupons.details.total')} <span className="text-emerald">{selectedCoupon.total_odds.toFixed(2)}</span>
+                                            </h3>
+                                        </div>
+                                        <div className="p-6 bg-navy/40 backdrop-blur-md rounded-[2rem] border border-white/5 text-center min-w-[140px]">
+                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">{t('coupons.confidence')}</p>
+                                            <p className="text-5xl font-black text-emerald italic leading-none">{Math.round(selectedCoupon.success_probability * 100)}%</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative z-10 p-8 bg-white/5 rounded-[2rem] border border-white/5 space-y-4">
+                                        <h4 className="text-xs font-black text-emerald uppercase tracking-[0.2em] flex items-center space-x-3">
+                                            <Zap size={16} fill="currentColor" />
+                                            <span>{t('coupons.details.strategicVerdict')}</span>
+                                        </h4>
+                                        <p className="text-xl font-bold text-white italic leading-relaxed">
+                                            "{selectedCoupon.ai_recommendation}"
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <h3 className="font-black text-xs uppercase tracking-[0.2em] text-gray-500 ml-4">{t('coupons.selections')} ({selectedCoupon.selections.length})</h3>
+                                    <div className="space-y-4">
+                                        {selectedCoupon.selections.map((match: any, idx: number) => (
+                                            <motion.div
+                                                key={match.id}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: idx * 0.1 }}
+                                                className="glass-card p-8 rounded-[2rem] flex items-center justify-between group hover:border-emerald/30 transition-all"
+                                            >
+                                                <div className="flex items-center space-x-8">
+                                                    <div className="p-4 bg-navy/60 rounded-2xl border border-white/5 text-center min-w-[80px]">
+                                                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">{t('coupons.odds')}</p>
+                                                        <p className="text-2xl font-black text-white italic">@{isNaN(match.odds) ? '1.50' : Number(match.odds).toFixed(2)}</p>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <h5 className="text-xl font-black text-white italic tracking-tight">
+                                                            {match.home_team} <span className="text-emerald mx-2 font-medium not-italic opacity-40">vs</span> {match.away_team}
+                                                        </h5>
+                                                        <div className="flex items-center gap-4">
+                                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded">
+                                                                {match.selection_type}
+                                                            </span>
+                                                            <span className="text-[10px] font-bold text-gray-600 uppercase">
+                                                                {new Date(match.match_date).toLocaleDateString()}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[9px] font-black text-emerald uppercase tracking-widest mb-1">{t('coupons.details.aiProbe')}</p>
+                                                    <p className="text-3xl font-black text-white italic">{Math.round(match.ai_probability * 100)}%</p>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="glass p-8 rounded-[2.5rem] space-y-8 border-t-4 border-orange-500/50 shadow-[0_0_30px_rgba(249,115,22,0.05)]">
+                                    <h3 className="font-black text-xs uppercase tracking-[0.2em] text-orange-500 flex items-center space-x-3">
+                                        <AlertTriangle size={18} />
+                                        <span>{t('coupons.attention')}</span>
+                                    </h3>
+
+                                    <div className="space-y-6">
+                                        {selectedCoupon.ai_analysis && (
+                                            <div className="space-y-6">
+                                                <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3">{t('coupons.details.globalAnalysis')}</p>
+                                                    <p className="text-sm text-gray-300 font-medium italic leading-relaxed">"{selectedCoupon.ai_analysis.detailed_analysis}"</p>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="p-4 bg-navy/40 rounded-2xl border border-white/5">
+                                                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-1">{t('coupons.details.coherence')}</p>
+                                                        <p className="text-xl font-black text-emerald">{Math.round((selectedCoupon.ai_analysis.coherence_score || 0) * 100)}%</p>
+                                                    </div>
+                                                    <div className="p-4 bg-navy/40 rounded-2xl border border-white/5">
+                                                        <p className="text-[9px] font-black text-gray-600 uppercase tracking-widest mb-1">{t('coupons.details.weakPoint')}</p>
+                                                        <p className="text-[10px] font-black text-red-500 uppercase leading-tight truncate mt-1">
+                                                            {selectedCoupon.ai_analysis.weakest_link || 'N/A'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="space-y-4">
+                                            {selectedCoupon.weak_points && selectedCoupon.weak_points.length > 0 ? (
+                                                selectedCoupon.weak_points.map((point: string, idx: number) => (
+                                                    <div key={idx} className="p-5 bg-orange-500/5 border border-orange-500/10 rounded-2xl flex items-start gap-4">
+                                                        <XCircle size={16} className="text-orange-500 mt-1 flex-shrink-0" />
+                                                        <p className="text-xs font-bold text-gray-400 italic leading-relaxed">"{point}"</p>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="p-6 bg-emerald/5 border border-emerald/10 rounded-2xl text-center">
+                                                    <CheckCircle2 className="mx-auto text-emerald mb-3" size={24} />
+                                                    <p className="text-xs text-emerald font-black uppercase tracking-widest">{t('coupons.noWeakness')}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {selectedCoupon.ai_analysis?.selection_insights && (
+                                        <div className="pt-4 space-y-4 border-t border-white/5">
+                                            <h4 className="text-[10px] font-black text-emerald uppercase tracking-[0.2em] ml-2">{t('coupons.details.smartInsights')}</h4>
+                                            <div className="space-y-3">
+                                                {selectedCoupon.ai_analysis.selection_insights.map((insight: any, idx: number) => (
+                                                    <div key={idx} className="p-4 bg-navy/40 rounded-2xl border border-white/5 group hover:border-emerald/20 transition-all">
+                                                        <p className="text-[10px] font-black text-white uppercase italic mb-2 tracking-tight">{insight.match}</p>
+                                                        <p className="text-[11px] text-gray-500 font-medium italic leading-relaxed">"{insight.insight}"</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <motion.div
+                                    whileHover={{ scale: 1.02 }}
+                                    className="glass-emerald p-8 rounded-[2.5rem] bg-linear-to-br from-emerald/10 to-transparent border border-emerald/20 text-center"
+                                >
+                                    <TrendingUp className="mx-auto text-emerald mb-4" size={40} />
+                                    <p className="text-xs text-gray-400 font-medium italic leading-relaxed px-4">
+                                        {t('coupons.details.advice')}
+                                    </p>
+                                </motion.div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <CouponBuilder
                 isOpen={isBuilderOpen}
@@ -442,6 +501,6 @@ export const CouponsPage: React.FC = () => {
                 onRemoveSelection={removeSelection}
                 onCreateCoupon={handleCreateCoupon}
             />
-        </div>
+        </motion.div>
     );
 };

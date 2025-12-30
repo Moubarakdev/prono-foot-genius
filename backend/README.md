@@ -60,6 +60,16 @@ alembic revision --autogenerate -m "Description of changes"
 alembic upgrade head
 ```
 
+##  Project Structure
+
+- `app/api/`: API route definitions
+- `app/core/`: Configuration, logging, and security
+- `app/models/`: SQLAlchemy ORM models
+- `app/schemas/`: Pydantic models for validation
+- `app/services/`: Business logic (AI, Football Data, Payments)
+- `app/providers/`: External data source adapters
+- `app/tasks/`: Celery background tasks
+
 ##  AI & Data Providers
 
 The backend uses a **Provider Pattern** to abstract external services.

@@ -15,6 +15,7 @@ from app.core.logger import logger
 from app.models import User, MatchAnalysis
 from app.providers.base import BaseFootballProvider, BaseAIProvider
 from app.services import cache_service, CACHE_TTL
+from app.services.analysis.computed_stats_service import computed_stats_service
 
 
 async def check_analysis_limit(user: User, db: AsyncSession) -> None:
@@ -177,6 +178,8 @@ class MatchAnalyzer:
         odds_key = f"odds:{fixture_id}"
         stats_key = f"team_stats:{home_team_id}:{league_id}"
         news_key = f"news:{home_team_id}:{away_team_id}"
+        recent_matches_home_key = f"recent_matches:{home_team_id}"
+        recent_matches_away_key = f"recent_matches:{away_team_id}"
         
         # Helper functions for parallel data fetching with cache
         async def get_h2h():
@@ -223,14 +226,23 @@ class MatchAnalyzer:
             except Exception as e:
                 logger.error(f"Error fetching news for analysis: {e}")
                 return []
+
+        async def get_recent_matches(team_id: int, league_id: int, cache_key: str):
+            cached = await cache_service.get(cache_key)
+            if cached:
+                return cached
+            # Fetch last 20 matches to have enough data for HT/FT analysis
+            data = await self.football_api.get_fixtures(team=team_id, league=league_id)
+            await cache_service.set(cache_key, data, CACHE_TTL.get("fixtures", 3600))
+            return data
         
         # Fetch all data in parallel for better performance
         return await asyncio.gather(
-            get_h2h(),
-            get_injuries(),
             get_odds(),
             get_stats(),
-            get_news()
+            get_news(),
+            get_recent_matches(home_team_id, league_id, recent_matches_home_key),
+            get_recent_matches(away_team_id, league_id, recent_matches_away_key)
         )
     
     def _determine_predicted_outcome(self, probs: Dict[str, float]) -> str:
@@ -247,7 +259,9 @@ class MatchAnalyzer:
         home_team: Dict[str, Any],
         away_team: Dict[str, Any],
         h2h_data: List[Dict[str, Any]],
-        user: User
+        user: User,
+        user_context: Optional[str] = None,
+        language: str = "fr"
     ) -> MatchAnalysis:
         """
         Perform analysis for a custom/hypothetical matchup.
@@ -278,7 +292,9 @@ class MatchAnalyzer:
             h2h_data=h2h_data,
             injuries_data=[],
             odds_data=[],
-            news_context=[]
+            news_context=[],
+            user_context=user_context,
+            language=language
         )
         
         # Extract predictions
@@ -294,6 +310,8 @@ class MatchAnalyzer:
             away_team=away_name,
             home_team_id=home_team["id"],
             away_team_id=away_team["id"],
+            home_team_logo=home_team.get("logo"),
+            away_team_logo=away_team.get("logo"),
             league_id=0,
             league_name="Custom Analysis",
             match_date=datetime.utcnow(),
@@ -306,6 +324,7 @@ class MatchAnalyzer:
             key_factors=ai_result["key_factors"],
             scenarios=ai_result["scenarios"],
             statistics_snapshot={},
+            news_context=[],
             created_at=datetime.utcnow()
         )
         
@@ -330,7 +349,9 @@ class MatchAnalyzer:
     async def analyze(
         self,
         fixture: Dict[str, Any],
-        user: User
+        user: User,
+        user_context: Optional[str] = None,
+        language: str = "fr"
     ) -> MatchAnalysis:
         """
         Perform full analysis on a fixture.
@@ -363,9 +384,20 @@ class MatchAnalyzer:
         logger.info(f"Performing analysis for {home_team} vs {away_team} (fixture_id: {fixture_id})")
         
         # Fetch all required data
-        h2h_data, injuries_data, odds_data, team_stats, news_context = await self._fetch_fixture_data(
+        h2h_data, injuries_data, odds_data, team_stats, news_context, recent_home, recent_away = await self._fetch_fixture_data(
             fixture_id, home_team_id, away_team_id, league_id, home_team, away_team
         )
+        
+        # Compute Smart Stats
+        smart_stats_home = computed_stats_service.compute_team_stats(recent_home, home_team_id)
+        smart_stats_away = computed_stats_service.compute_team_stats(recent_away, away_team_id)
+        
+        # Aggregate stats for AI
+        combined_stats = {
+            "home": smart_stats_home,
+            "away": smart_stats_away,
+            "raw_api_stats": team_stats
+        }
         
         # AI Analysis
         ai_result = await self.ai_service.analyze_match(
@@ -373,11 +405,13 @@ class MatchAnalyzer:
             away_team=away_team,
             league_name=league_name,
             match_date=fixture["fixture"]["date"],
-            team_stats=team_stats,
+            team_stats=combined_stats,
             h2h_data=h2h_data,
             injuries_data=injuries_data,
             odds_data=odds_data,
-            news_context=news_context
+            news_context=news_context,
+            user_context=user_context,
+            language=language
         )
         
         # Determine predicted outcome
@@ -393,6 +427,8 @@ class MatchAnalyzer:
             fixture_id=fixture_id,
             home_team=home_team,
             away_team=away_team,
+            home_team_logo=fixture["teams"]["home"]["logo"],
+            away_team_logo=fixture["teams"]["away"]["logo"],
             home_team_id=home_team_id,
             away_team_id=away_team_id,
             league_id=league_id,
@@ -407,6 +443,7 @@ class MatchAnalyzer:
             key_factors=ai_result["key_factors"],
             scenarios=ai_result["scenarios"],
             statistics_snapshot=team_stats if isinstance(team_stats, dict) else {},
+            news_context=news_context,
             value_bet=value_bet,
             created_at=datetime.utcnow()
         )

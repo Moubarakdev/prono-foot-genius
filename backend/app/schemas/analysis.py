@@ -9,6 +9,7 @@ class MatchAnalysisRequest(BaseModel):
     home_team: str | None = Field(None, min_length=2)
     away_team: str | None = Field(None, min_length=2)
     fixture_id: int | None = None  # Optional, can search by team names
+    user_context: str | None = None
 
     model_config = {
         "json_schema_extra": {
@@ -25,6 +26,7 @@ class CustomAnalysisRequest(BaseModel):
     """Request schema for custom 1vs1 analysis."""
     home_team_id: int
     away_team_id: int
+    user_context: str | None = None
 
     model_config = {
         "json_schema_extra": {
@@ -67,6 +69,8 @@ class MatchAnalysisResponse(BaseModel):
     fixture_id: int
     home_team: str
     away_team: str
+    home_team_logo: str | None = None
+    away_team_logo: str | None = None
     league_name: str
     match_date: datetime
     
@@ -126,6 +130,8 @@ class MatchAnalysisListResponse(BaseModel):
     id: uuid.UUID
     home_team: str
     away_team: str
+    home_team_logo: str | None = None
+    away_team_logo: str | None = None
     league_name: str
     match_date: datetime
     predicted_outcome: str

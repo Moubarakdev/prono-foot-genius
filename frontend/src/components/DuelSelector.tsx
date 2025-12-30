@@ -22,8 +22,8 @@ export const DuelSelector: React.FC<DuelSelectorProps> = ({ onAnalyze, isLoading
     };
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="glass p-8 rounded-3xl border border-white/5 relative overflow-hidden">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 relative z-20">
+            <div className="glass p-8 rounded-3xl border border-white/5 relative">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald to-transparent opacity-20"></div>
 
                 <div className="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">

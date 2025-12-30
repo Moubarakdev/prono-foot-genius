@@ -32,6 +32,9 @@ Tu dois analyser un match et fournir des prédictions précises.
 ### Actualités récentes (Contexte Visifoot)
 {news_data}
 
+### Contexte de la communauté (Infos utilisateur)
+{user_context}
+
 ## Ta mission
 
 1. **Calcule les probabilités 1X2** (la somme doit faire 100%)
@@ -152,14 +155,15 @@ class GeminiAIProvider(BaseAIProvider):
         except (IndexError, KeyError): pass
         return "Cotes non disponibles"
 
-    async def analyze_match(self, home_team, away_team, league_name, match_date, team_stats, h2h_data, injuries_data, odds_data, news_context=[]):
+    async def analyze_match(self, home_team, away_team, league_name, match_date, team_stats, h2h_data, injuries_data, odds_data, news_context=[], user_context=None):
         if not self.model: return self._get_fallback_analysis(home_team, away_team)
         
         prompt = ANALYSIS_PROMPT_TEMPLATE.format(
             home_team=home_team, away_team=away_team, league_name=league_name, match_date=match_date,
             team_stats=self._format_stats(team_stats), h2h_data=self._format_h2h(h2h_data),
             injuries_data=self._format_injuries(injuries_data), odds_data=self._format_odds(odds_data),
-            news_data="\n".join([f"- {n}" for n in news_context]) if news_context else "Aucune actualité trouvée."
+            news_data="\n".join([f"- {n}" for n in news_context]) if news_context else "Aucune actualité trouvée.",
+            user_context=user_context if user_context else "Aucun contexte additionnel fourni."
         )
         
         try:

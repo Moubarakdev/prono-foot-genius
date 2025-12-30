@@ -87,7 +87,8 @@ class BaseAIProvider(ABC):
         h2h_data: List[Dict[str, Any]],
         injuries_data: List[Dict[str, Any]],
         odds_data: List[Dict[str, Any]],
-        news_context: List[str] = []
+        news_context: List[str] = [],
+        user_context: Optional[str] = None
     ) -> Dict[str, Any]:
         pass
     

@@ -88,7 +88,7 @@ export const VerifyOtpPage = () => {
             <div className="relative z-10 flex flex-col justify-center px-6 lg:px-20 py-12">
                 <div className="absolute top-6 left-6 lg:left-20 flex items-center justify-between w-[calc(100%-3rem)] lg:w-[calc(100%-10rem)]">
                     <Link to="/" className="flex items-center space-x-2">
-                        <img src={logo} alt="FootIntel" className="h-8 w-auto" />
+                        <img src={logo} alt="Foot Genius" className="h-8 w-auto" />
                     </Link>
                     <LanguageSwitcher />
                 </div>

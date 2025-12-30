@@ -24,11 +24,11 @@ export const PricingPage: React.FC = () => {
             try {
                 const data = await subscriptionService.getPricing();
                 setPricing(data);
-                
+
                 // Vérifier si le pays est en Afrique
                 const isAfrican = AFRICAN_COUNTRIES.includes(data.country_code);
                 setIsAfricanCountry(isAfrican);
-                
+
                 // Default to moneroo if in Africa for mobile money
                 if (isAfrican) {
                     setPaymentMethod('moneroo');
@@ -79,7 +79,7 @@ export const PricingPage: React.FC = () => {
         {
             id: 'starter',
             name: 'Starter',
-            price: pricing ? `${pricing.plans.starter}${pricing.symbol}` : '9.99€',
+            price: pricing ? `${pricing.plans.starter}${pricing.symbol}` : '10€',
             period: t('pricing.free.period'),
             features: [
                 t('pricing.starter.feature1'),
@@ -233,7 +233,7 @@ export const PricingPage: React.FC = () => {
             <div className="glass p-10 rounded-[3rem] text-center space-y-6 max-w-4xl mx-auto border-emerald/10 animate-in fade-in zoom-in-95 duration-700 delay-300">
                 <h4 className="text-2xl font-black text-white italic uppercase">Des questions ?</h4>
                 <p className="text-gray-400 font-medium px-10">
-                    Notre équipe d'experts et notre support technique sont disponibles 7j/7 pour vous accompagner dans votre utilisation de FootIntel.
+                    Notre équipe d'experts et notre support technique sont disponibles 7j/7 pour vous accompagner dans votre utilisation de Foot Genius.
                 </p>
                 <button className="btn-secondary px-10 py-3 uppercase font-black text-xs tracking-widest hover:border-emerald/50 cursor-pointer">
                     Contacter le Support

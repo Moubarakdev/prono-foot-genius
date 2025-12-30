@@ -34,9 +34,12 @@ export const analyzeService = {
         }
     },
 
-    analyzeMatch: async (fixtureId: number): Promise<MatchAnalysis> => {
+    analyzeMatch: async (fixtureId: number, userContext?: string): Promise<MatchAnalysis> => {
         try {
-            const response = await apiClient.post('/analyze/match', { fixture_id: fixtureId });
+            const response = await apiClient.post('/analyze/match', {
+                fixture_id: fixtureId,
+                user_context: userContext
+            });
             return response.data;
         } catch (error) {
             console.error('Error analyzing match:', error);
@@ -44,11 +47,12 @@ export const analyzeService = {
         }
     },
 
-    analyzeDuel: async (homeTeamId: number, awayTeamId: number): Promise<MatchAnalysis> => {
+    analyzeDuel: async (homeTeamId: number, awayTeamId: number, userContext?: string): Promise<MatchAnalysis> => {
         try {
             const response = await apiClient.post('/analyze/custom', {
                 home_team_id: homeTeamId,
-                away_team_id: awayTeamId
+                away_team_id: awayTeamId,
+                user_context: userContext
             });
             return response.data;
         } catch (error) {

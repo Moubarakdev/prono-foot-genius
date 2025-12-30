@@ -27,6 +27,8 @@ class MatchAnalysis(Base):
     fixture_id: Mapped[int] = mapped_column(Integer, index=True)
     home_team: Mapped[str] = mapped_column(String(255))
     away_team: Mapped[str] = mapped_column(String(255))
+    home_team_logo: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    away_team_logo: Mapped[str | None] = mapped_column(String(255), nullable=True)
     home_team_id: Mapped[int] = mapped_column(Integer)
     away_team_id: Mapped[int] = mapped_column(Integer)
     league_id: Mapped[int] = mapped_column(Integer)
@@ -59,6 +61,15 @@ class MatchAnalysis(Base):
         DateTime,
         default=datetime.utcnow
     )
+
+    @property
+    def predictions(self) -> dict:
+        """Helper to return predictions as a dict for Pydantic compatibility."""
+        return {
+            "home": self.prediction_home,
+            "draw": self.prediction_draw,
+            "away": self.prediction_away
+        }
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="analyses")

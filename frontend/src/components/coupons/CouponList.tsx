@@ -5,6 +5,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Loader2, Ticket } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import { CouponCard } from './CouponCard';
 import type { CouponListItem } from '../../types';
 
@@ -38,13 +39,15 @@ export const CouponList: React.FC<CouponListProps> = ({ coupons, loading, onView
 
     return (
         <div className="space-y-4">
-            {coupons.map((coupon) => (
-                <CouponCard
-                    key={coupon.id}
-                    coupon={coupon}
-                    onClick={() => onViewCoupon(coupon.id)}
-                />
-            ))}
+            <AnimatePresence mode="popLayout">
+                {coupons.map((coupon) => (
+                    <CouponCard
+                        key={coupon.id}
+                        coupon={coupon}
+                        onClick={() => onViewCoupon(coupon.id)}
+                    />
+                ))}
+            </AnimatePresence>
         </div>
     );
 };

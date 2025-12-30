@@ -1,0 +1,15 @@
+﻿src/features/analyze/components/AnalysisResult.tsx(6,18): error TS6133: 'AnimatePresence' is declared but its value is never read.
+src/features/analyze/components/AnalysisResult.tsx(21,11): error TS6133: 't' is declared but its value is never read.
+src/features/analyze/components/AnalysisResult.tsx(47,13): error TS2322: Type '{ hidden: { opacity: number; y: number; }; visible: { opacity: number; y: number; transition: { duration: number; ease: string; staggerChildren: number; }; }; }' is not assignable to type 'Variants'.
+  Property 'visible' is incompatible with index signature.
+    Type '{ opacity: number; y: number; transition: { duration: number; ease: string; staggerChildren: number; }; }' is not assignable to type 'Variant'.
+      Type '{ opacity: number; y: number; transition: { duration: number; ease: string; staggerChildren: number; }; }' is not assignable to type 'TargetAndTransition'.
+        Type '{ opacity: number; y: number; transition: { duration: number; ease: string; staggerChildren: number; }; }' is not assignable to type '{ transition?: Transition<any> | undefined; transitionEnd?: ResolvedValues | undefined; }'.
+          Types of property 'transition' are incompatible.
+            Type '{ duration: number; ease: string; staggerChildren: number; }' is not assignable to type 'Transition<any> | undefined'.
+              Type '{ duration: number; ease: string; staggerChildren: number; }' is not assignable to type 'TransitionWithValueOverrides<any>'.
+                Type '{ duration: number; ease: string; staggerChildren: number; }' is not assignable to type 'ValueAnimationTransition<any>'.
+                  Types of property 'ease' are incompatible.
+                    Type 'string' is not assignable to type 'Easing | Easing[] | undefined'.
+src/pages/AnalyzePage.tsx(126,38): error TS2339: Property 'showLoading' does not exist on type '{ readonly id: "search"; readonly label: string; readonly icon: Element; } | { readonly id: "duel"; readonly label: string; readonly icon: Element; } | { readonly id: "history"; readonly label: string; readonly icon: Element; readonly showLoading: boolean; }'.
+  Property 'showLoading' does not exist on type '{ readonly id: "search"; readonly label: string; readonly icon: Element; }'.

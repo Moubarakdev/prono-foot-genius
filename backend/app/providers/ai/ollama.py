@@ -52,6 +52,9 @@ ANALYSIS_PROMPT_TEMPLATE = """Analyse ce match de football pour un pari sportif.
 📍 Compétition: {league_name}
 📅 Date: {match_date}
 
+## CONTEXTE ADDITIONNEL (Infos de la communauté)
+{user_context}
+
 ## CONSIGNES D'ANALYSE
 
 1. **Probabilités 1X2** (⚠️ CRITIQUE: home + draw + away = 1.0 EXACTEMENT)
@@ -342,7 +345,7 @@ class OllamaAIProvider(BaseAIProvider):
             )
             return None
 
-    async def analyze_match(self, home_team, away_team, league_name, match_date, team_stats=None, h2h_data=None, injuries_data=None, odds_data=None, news_context=None):
+    async def analyze_match(self, home_team, away_team, league_name, match_date, team_stats=None, h2h_data=None, injuries_data=None, odds_data=None, news_context=None, user_context=None):
         """Analyze a match using Ollama with retry logic."""
         if not self.available:
             await self._check_availability()
@@ -354,7 +357,8 @@ class OllamaAIProvider(BaseAIProvider):
             home_team=home_team,
             away_team=away_team,
             league_name=league_name,
-            match_date=match_date
+            match_date=match_date,
+            user_context=user_context if user_context else "Aucun contexte particulier signalé."
         )
         
         # Tentative avec retry (2 tentatives max)
