@@ -1,48 +1,17 @@
 import { apiClient } from '../../../lib/api-client';
+import type {
+    CouponSelection,
+    CouponCreate,
+    ParsedOdds,
+    OddValue,
+    Bet,
+    Bookmaker,
+    FixtureOdds
+} from '../../../types';
 
-export interface CouponSelection {
-    fixture_id: number;
-    home_team: string;
-    away_team: string;
-    match_date: string;
-    selection_type: string;
-    odds: number;
-}
+// Re-export types for backward compatibility
+export type { CouponSelection, CouponCreate, ParsedOdds, OddValue, Bet, Bookmaker, FixtureOdds };
 
-export interface CouponCreate {
-    selections: CouponSelection[];
-}
-
-export interface OddValue {
-    value: string;
-    odd: string;
-}
-
-export interface Bet {
-    id: number;
-    name: string;
-    values: OddValue[];
-}
-
-export interface Bookmaker {
-    id: number;
-    name: string;
-    bets: Bet[];
-}
-
-export interface FixtureOdds {
-    bookmakers: Bookmaker[];
-}
-
-export interface ParsedOdds {
-    home: number;
-    draw: number;
-    away: number;
-    over25?: number;
-    under25?: number;
-    btts_yes?: number;
-    btts_no?: number;
-}
 
 /**
  * Safely parse a float value, returning a default if invalid

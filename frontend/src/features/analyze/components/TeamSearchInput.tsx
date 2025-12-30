@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Loader2, X } from 'lucide-react';
-import { analyzeService, type Team } from '../services/analyze-service';
+import { analyzeService } from '../services/analyze-service';
+import { type Team } from '../../../types';
 import { cn } from '../../../lib/utils';
 import { useTranslation } from 'react-i18next';
 

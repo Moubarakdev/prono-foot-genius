@@ -60,7 +60,7 @@ export const DashboardLayout: React.FC<LayoutProps> = ({ children }) => {
             )}>
                 <div className="p-6 flex items-center justify-between">
                     <Link to="/dashboard" className="flex items-center space-x-2">
-                        <img src={logo} alt="FootIntel" className="h-10 w-auto" />
+                        <img src={logo} alt="FootGenius" className="h-10 w-auto" />
                     </Link>
                     <button
                         onClick={() => setIsMobileMenuOpen(false)}
@@ -126,11 +126,29 @@ export const DashboardLayout: React.FC<LayoutProps> = ({ children }) => {
                         <Link to="/profile" className="flex items-center space-x-4 hover:opacity-80 transition-opacity">
                             <div className="text-right hidden sm:block">
                                 <p className="text-sm font-bold text-white">{user?.full_name || t('common.user')}</p>
-                                <p className="text-xs text-emerald font-medium uppercase tracking-wider">{user?.subscription || t('pricing.free.name')}</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-xs text-emerald font-medium uppercase tracking-wider">{user?.subscription || 'FREE'}</p>
+                                    {user?.analyses_limit && user.analyses_limit !== -1 && (
+                                        <span className="text-xs text-gray-400">
+                                            ({user.daily_analyses_used || 0}/{user.analyses_limit})
+                                        </span>
+                                    )}
+                                    {user?.analyses_limit === -1 && (
+                                        <span className="text-xs text-gold">∞</span>
+                                    )}
+                                </div>
                             </div>
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald to-cyan flex items-center justify-center text-navy font-black shadow-lg shadow-emerald/20">
-                                {user?.full_name?.charAt(0) || 'U'}
-                            </div>
+                            {user?.avatar_url ? (
+                                <img 
+                                    src={user.avatar_url} 
+                                    alt={user.full_name || 'User'} 
+                                    className="w-10 h-10 rounded-full object-cover shadow-lg shadow-emerald/20 ring-2 ring-emerald/20"
+                                />
+                            ) : (
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald to-cyan flex items-center justify-center text-navy font-black shadow-lg shadow-emerald/20">
+                                    {user?.full_name?.charAt(0) || 'U'}
+                                </div>
+                            )}
                         </Link>
                     </div>
                 </header>

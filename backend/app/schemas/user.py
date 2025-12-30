@@ -29,6 +29,7 @@ class UserResponse(BaseModel):
     profile_type: str
     subscription: str
     daily_analyses_used: int
+    analyses_limit: int
     created_at: datetime
     
     class Config:

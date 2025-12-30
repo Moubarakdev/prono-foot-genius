@@ -280,7 +280,7 @@ async def login(
         extra={'extra_data': {
             'email': user.email,
             'user_id': str(user.id),
-            'subscription_plan': user.subscription_plan
+            'subscription_plan': user.subscription
         }}
     )
     

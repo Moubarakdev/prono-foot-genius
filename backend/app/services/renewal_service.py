@@ -98,7 +98,7 @@ class RenewalReminderService:
     def get_renewal_email_subject(lang: str = 'fr') -> str:
         """Retourne le sujet de l'email de rappel."""
         subjects = {
-            'fr': "⏰ Votre abonnement FootIntel expire bientôt",
+            'fr': "⏰ Votre abonnement FootGenius expire bientôt",
             'en': "⏰ Your FootIntel subscription is expiring soon",
             'de': "⏰ Ihr FootIntel-Abonnement läuft bald ab"
         }

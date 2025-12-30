@@ -1,4 +1,4 @@
-# CouponFoot API
+# FootGenius API
 
 API d'analyse de matchs de football avec Intelligence Artificielle.
 

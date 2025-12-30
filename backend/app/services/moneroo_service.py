@@ -26,7 +26,11 @@ class MonerooService:
 
     def verify_signature(self, payload: bytes, signature: str) -> bool:
         """Verify Moneroo webhook signature."""
-        if not self.webhook_secret or not signature:
+        if not self.webhook_secret:
+            logger.warning("Moneroo webhook secret not configured - skipping signature verification")
+            return True
+
+        if not signature:
             return False
             
         expected_signature = hmac.new(

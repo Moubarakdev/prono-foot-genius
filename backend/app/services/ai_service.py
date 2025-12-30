@@ -5,111 +5,13 @@ from typing import Any, Dict, List, Optional
 
 from app.core.config import get_settings
 from app.core.logger import get_logger
+from app.services.ai.prompts import (
+    MATCH_ANALYSIS_PROMPT_TEMPLATE,
+    COUPON_ANALYSIS_PROMPT_TEMPLATE,
+)
 
 settings = get_settings()
 logger = get_logger('services.ai')
-
-
-ANALYSIS_PROMPT_TEMPLATE = """Tu es un expert en analyse de football avec accès à des données professionnelles.
-Tu dois analyser un match et fournir des prédictions précises.
-
-## Match à analyser
-- **{home_team}** vs **{away_team}**
-- Compétition: {league_name}
-- Date: {match_date}
-
-## Données disponibles
-
-### Statistiques des équipes
-{team_stats}
-
-### Historique confrontations directes (H2H)
-{h2h_data}
-
-### Blessures/Suspensions
-{injuries_data}
-
-### Cotes actuelles
-{odds_data}
-
-### Actualités récentes (Contexte Visifoot)
-{news_data}
-
-## Ta mission
-
-1. **Calcule les probabilités 1X2** (la somme doit faire 100%)
-   - Victoire domicile (1)
-   - Match nul (X)
-   - Victoire extérieur (2)
-
-2. **Identifie les 3-5 facteurs clés** qui influenceront le match
-
-3. **Décris 2-3 scénarios probables** avec leurs probabilités
-
-4. **Rédige un résumé clair et engageant** (3-4 phrases) expliquant ton analyse
-
-## Format de réponse OBLIGATOIRE (JSON valide)
-
-Réponds UNIQUEMENT avec ce JSON, sans texte avant ou après:
-
-{{
-  "probabilities": {{
-    "home": 0.45,
-    "draw": 0.30,
-    "away": 0.25
-  }},
-  "predicted_outcome": "1",
-  "confidence": 0.72,
-  "key_factors": [
-    "Facteur clé 1",
-    "Facteur clé 2",
-    "Facteur clé 3"
-  ],
-  "scenarios": [
-    {{
-      "name": "Scénario principal",
-      "probability": 0.45,
-      "description": "Description du scénario"
-    }},
-    {{
-      "name": "Scénario alternatif",
-      "probability": 0.30,
-      "description": "Description du scénario"
-    }}
-  ],
-  "summary": "Résumé de l'analyse en 3-4 phrases."
-}}
-"""
-
-
-COUPON_ANALYSIS_PROMPT_TEMPLATE = """Tu es un expert en paris sportifs et analyse de données footballistiques. 
-Tu dois analyser un coupon composé de plusieurs sélections (combiné) et évaluer sa viabilité globale.
-
-## Coupon à analyser
-{matches_info}
-
-## Ta mission
-1. **Évalue la probabilité globale de succès** du coupon (combiné).
-2. **Identifie le "maillon faible"** (la sélection la plus risquée).
-3. **Analyse la cohérence globale** (ex: sélections contradictoires, corrélations).
-4. **Donne des conseils stratégiques** (ex: retirer une sélection, type de mise recommandée).
-
-## Format de réponse OBLIGATOIRE (JSON valide)
-{{
-  "overall_probability": 0.15,
-  "risk_score": 0.85,
-  "weakest_link": "Nom du match et sélection",
-  "coherence_score": 0.9,
-  "recommendation": "Conseil stratégique court",
-  "detailed_analysis": "Analyse globale en 2-3 phrases",
-  "selection_insights": [
-    {{
-      "match": "Team A vs Team B",
-      "insight": "Détail spécifique sur pourquoi cette sélection est bonne ou risquée"
-    }}
-  ]
-}}
-"""
 
 
 
@@ -224,7 +126,7 @@ class GeminiAIService:
             return self._get_fallback_analysis(home_team, away_team)
         
         # Build prompt
-        prompt = ANALYSIS_PROMPT_TEMPLATE.format(
+        prompt = MATCH_ANALYSIS_PROMPT_TEMPLATE.format(
             home_team=home_team,
             away_team=away_team,
             league_name=league_name,

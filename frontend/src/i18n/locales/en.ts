@@ -2,6 +2,7 @@ export const en = {
     // Common
     "common.loading": "Loading...",
     "common.refreshing": "Refreshing...",
+    "common.viewAll": "View All",
 
     // Dashboard Home
     "dashboard.home.title": "DASHBOARD",
@@ -18,6 +19,7 @@ export const en = {
     "dashboard.stats.lastGain": "Last win",
     "dashboard.recent.title": "LATEST ANALYSES",
     "dashboard.recent.timeAgo": "{{time}} ago",
+    "dashboard.recent.empty": "No analyses yet. Start by analyzing a match!",
     "dashboard.upgrade.title": "Level Up",
     "dashboard.upgrade.description": "Unlock AI assistant and unlimited analyses with LIFETIME account.",
     "dashboard.upgrade.button": "View Offers",
@@ -118,6 +120,7 @@ export const en = {
     "nav.pricing": "Pricing",
     "nav.login": "Login",
     "nav.start": "GET STARTED",
+    "nav.dashboard": "Dashboard",
 
     // Dashboard
     "dashboard.title": "Dashboard",
@@ -147,12 +150,8 @@ export const en = {
     "coupons.analysis.global": "Global Analysis",
     "coupons.analysis.weakLink": "Weak Link",
     "coupons.analysis.matchInsights": "Match Insights",
-    "coupons.probability": "Probability",
-    "coupons.analysis.global": "Global Analysis",
-    "coupons.analysis.weakLink": "Weak Link",
-    "coupons.analysis.matchInsights": "Match Insights",
     "coupons.share": "Share this Coupon",
-    "coupons.share.title": "My FootIntel Coupon",
+    "coupons.share.title": "My FootGenius Coupon",
     "coupons.share.text": "💎 AI-analyzed Coupon - Odds {{odds}} - Probability {{proba}}%",
     "coupons.share.success": "✅ Coupon shared successfully!",
     "coupons.share.copied": "✅ Link copied to clipboard!",
@@ -203,7 +202,7 @@ export const en = {
     "analyze.result.draw": "Draw (X)",
     "analyze.result.currentOdds": "Current Odds",
     "analyze.result.expectedValue": "Expected Value (EV)",
-    "analyze.result.basedOnProba": "Based on FootIntel probabilities",
+    "analyze.result.basedOnProba": "Based on FootGenius probabilities",
     "analyze.result.mathematicalAdvantage": "This odd is mathematically advantageous in the long run.",
     "analyze.nextMatches": "Upcoming matches for {{team}}",
     "analyze.vs": "VS",
@@ -269,7 +268,7 @@ export const en = {
     // Verify OTP
     "verify.hero.title": "SECURE YOUR ACCESS TO",
     "verify.hero.highlight": "BEST ANALYSES",
-    "verify.hero.description": "At FootIntel, we take your security seriously. Verify your email to start betting with intelligence ahead.",
+    "verify.hero.description": "At FootGenius, we take your security seriously. Verify your email to start betting with intelligence ahead.",
 
     // Subscription Management
     "subscription.title": "Subscription Management",

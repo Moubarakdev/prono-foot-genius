@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BarChart2, Shield, TrendingUp, MessageSquare, ChevronRight, AlertCircle } from 'lucide-react';
-import { type MatchAnalysis } from '../services/analyze-service';
+import { type MatchAnalysis } from '../../../types';
 import { cn } from '../../../lib/utils';
 
 interface AnalysisResultProps {

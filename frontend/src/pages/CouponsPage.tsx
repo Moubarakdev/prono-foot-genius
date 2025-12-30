@@ -1,25 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Ticket, Loader2, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Plus, ChevronRight, PieChart, Activity, X, PlusCircle, Trash2, Send, Zap, Sparkles, RefreshCw } from 'lucide-react';
+import { Ticket, Loader2, TrendingUp, AlertTriangle, CheckCircle2, XCircle, Plus, PieChart, Activity, Zap, Sparkles, RefreshCw } from 'lucide-react';
 import { couponService, type ParsedOdds } from '../features/coupons/services/coupon-service';
-import { TeamSearchInput } from '../components/TeamSearchInput';
+import { CouponList, CouponBuilder } from '../components/coupons';
+import { useCoupons } from '../hooks';
 import { cn } from '../lib/utils';
 
 export const CouponsPage: React.FC = () => {
     const { t } = useTranslation();
-    const [coupons, setCoupons] = useState<any[]>([]);
-    const [dailyCoupons, setDailyCoupons] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [selectedCoupon, setSelectedCoupon] = useState<any>(null);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null);
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [reanalyzing, setReanalyzing] = useState(false);
 
-    // Builder State
+    // Use the custom hook for coupon state management
+    const {
+        coupons,
+        dailyCoupons,
+        loading,
+        refreshing,
+        selectedCoupon,
+        successMessage,
+        errorMessage,
+        viewCouponDetail,
+        clearSelectedCoupon,
+        setSuccessMessage,
+        setErrorMessage,
+        reanalyzeCoupon,
+        reanalyzing,
+        loadCoupons,
+    } = useCoupons();
+
+    // Builder State (local to this page)
     const [isBuilderOpen, setIsBuilderOpen] = useState(false);
     const [newSelections, setNewSelections] = useState<any[]>([]);
-
     const [isCreating, setIsCreating] = useState(false);
 
     // Odds State
@@ -35,54 +45,6 @@ export const CouponsPage: React.FC = () => {
         match_date: new Date().toISOString().split('T')[0],
         fixture_id: 0
     });
-
-    useEffect(() => {
-        loadCoupons();
-        loadDailyCoupons();
-
-        // Auto-refresh every 30 seconds
-        const interval = setInterval(() => {
-            loadCoupons(true); // silent refresh
-            loadDailyCoupons();
-        }, 30000);
-
-        return () => clearInterval(interval);
-    }, []);
-
-    const loadCoupons = async (silent = false) => {
-        if (!silent) setLoading(true);
-        else setRefreshing(true);
-        try {
-            const data = await couponService.listCoupons();
-            setCoupons(data);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            if (!silent) setLoading(false);
-            else setRefreshing(false);
-        }
-    };
-
-    const loadDailyCoupons = async () => {
-        try {
-            const data = await couponService.getDailyCoupons();
-            setDailyCoupons(data);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    const viewCouponDetail = async (id: string) => {
-        setLoading(true);
-        try {
-            const data = await couponService.getCouponById(id);
-            setSelectedCoupon(data);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleCreateCoupon = async () => {
         if (newSelections.length === 0) return;
@@ -117,7 +79,6 @@ export const CouponsPage: React.FC = () => {
             match_date: new Date().toISOString().split('T')[0],
             fixture_id: 0
         });
-        // Reset selected teams
         setFixtureOdds(null);
     };
 
@@ -126,23 +87,9 @@ export const CouponsPage: React.FC = () => {
     };
 
     const handleReanalyzeCoupon = async () => {
-        if (!selectedCoupon) return;
-        setReanalyzing(true);
-        setErrorMessage(null);
-        try {
-            const updatedCoupon = await couponService.reanalyzeCoupon(selectedCoupon.id);
-            setSelectedCoupon(updatedCoupon);
-            setSuccessMessage('✅ Analyse IA mise à jour !');
-            setTimeout(() => setSuccessMessage(null), 3000);
-            loadCoupons(true); // Silent refresh to update the list
-        } catch (err: any) {
-            console.error(err);
-            setErrorMessage(err?.response?.data?.detail || '❌ Erreur lors de la relance de l\'analyse');
-            setTimeout(() => setErrorMessage(null), 5000);
-        } finally {
-            setReanalyzing(false);
-        }
+        await reanalyzeCoupon();
     };
+
 
     const handleShareCoupon = async () => {
         if (!selectedCoupon) return;
@@ -150,7 +97,7 @@ export const CouponsPage: React.FC = () => {
         const shareText = `${t('coupons.share.text', {
             odds: selectedCoupon.total_odds.toFixed(2),
             proba: Math.round(selectedCoupon.success_probability * 100)
-        })}\n\n${selectedCoupon.selections.map((s: any, i: number) => 
+        })}\n\n${selectedCoupon.selections.map((s: any, i: number) =>
             `${i + 1}. ${s.home_team} vs ${s.away_team} - ${s.selection_type === '1' ? t('coupons.builder.homeWin') : s.selection_type === 'X' ? t('coupons.builder.draw') : t('coupons.builder.awayWin')} (${s.odds})`
         ).join('\n')}`;
 
@@ -245,66 +192,12 @@ export const CouponsPage: React.FC = () => {
 
             {!selectedCoupon ? (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-700">
-                    {/* Main List */}
                     <div className="lg:col-span-2 space-y-4">
-                        {loading && coupons.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-20 glass rounded-3xl">
-                                <Loader2 className="animate-spin text-emerald mb-4" size={40} />
-                                <p className="text-gray-500 font-bold">{t('common.loading')}</p>
-                            </div>
-                        ) : coupons.length > 0 ? (
-                            coupons.map((coupon) => (
-                                <div
-                                    key={coupon.id}
-                                    onClick={() => viewCouponDetail(coupon.id)}
-                                    className="glass p-6 rounded-2xl hover:bg-white/5 transition-all cursor-pointer group flex items-center justify-between border border-transparent hover:border-white/10"
-                                >
-                                    <div className="flex items-center space-x-6">
-                                        <div className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-emerald">
-                                            <Ticket size={28} />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center space-x-3">
-                                                <span className="font-black text-lg text-white">{t('coupons.totalOdds')}: {coupon.total_odds}</span>
-                                                <span className={cn(
-                                                    "px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border",
-                                                    getRiskColor(coupon.risk_level)
-                                                )}>
-                                                    {t('coupons.risk.label')}: {coupon.risk_level}
-                                                </span>
-                                            </div>
-                                            <p className="text-xs text-gray-500 font-black uppercase tracking-widest mt-1">
-                                                {coupon.selections_count} {t('analyze.matches')} • {t('analyze.recent')} {new Date(coupon.created_at).toLocaleDateString()}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center space-x-8 text-right">
-                                        <div>
-                                            <p className="text-[10px] font-black text-gray-500 uppercase">{t('coupons.confidence')}</p>
-                                            <p className="text-xl font-black text-emerald italic">{Math.round(coupon.success_probability * 100)}%</p>
-                                        </div>
-                                        <div className={cn(
-                                            "w-12 h-12 rounded-full flex items-center justify-center border-2",
-                                            coupon.status === 'won' ? "border-emerald text-emerald bg-emerald/10" :
-                                                coupon.status === 'lost' ? "border-red-500 text-red-500 bg-red-500/10" :
-                                                    "border-white/10 text-gray-600"
-                                        )}>
-                                            {coupon.status === 'won' ? <CheckCircle2 size={24} /> :
-                                                coupon.status === 'lost' ? <XCircle size={24} /> :
-                                                    <Activity size={20} className="animate-pulse" />}
-                                        </div>
-                                        <ChevronRight className="text-gray-700 group-hover:text-white transition-colors" />
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-20 glass rounded-3xl border-dashed border-2 border-white/5">
-                                <Ticket size={64} className="mx-auto text-gray-700 mb-6" />
-                                <h3 className="text-xl font-bold text-gray-500 uppercase">{t('coupons.list.empty')}</h3>
-                                <p className="text-gray-600 mt-2">{t('coupons.builder.empty')}</p>
-                            </div>
-                        )}
+                        <CouponList
+                            coupons={coupons}
+                            loading={loading}
+                            onViewCoupon={viewCouponDetail}
+                        />
                     </div>
 
                     {/* Sidebar Stats */}
@@ -381,7 +274,7 @@ export const CouponsPage: React.FC = () => {
                 <div className="space-y-8 animate-in zoom-in-95 duration-500">
                     <div className="flex items-center justify-between">
                         <button
-                            onClick={() => setSelectedCoupon(null)}
+                            onClick={clearSelectedCoupon}
                             className="text-gray-500 hover:text-white transition-colors text-xs font-black uppercase tracking-widest flex items-center space-x-2 cursor-pointer"
                         >
                             <span>← {t('common.close')}</span>
@@ -524,7 +417,7 @@ export const CouponsPage: React.FC = () => {
 
                             <div className="glass p-8 rounded-3xl space-y-4 text-center">
                                 <div className="hidden"></div>
-                                <button 
+                                <button
                                     onClick={handleShareCoupon}
                                     className="w-full btn-primary py-4 uppercase font-black text-xs tracking-widest mt-4 hover:scale-105 transition-transform"
                                 >
@@ -536,205 +429,19 @@ export const CouponsPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Coupon Builder Modal */}
-            {isBuilderOpen && (
-                <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6 animate-in fade-in zoom-in-95 duration-300">
-                    <div className="absolute inset-0 bg-navy/80 backdrop-blur-sm" onClick={() => setIsBuilderOpen(false)} />
-
-                    <div className="relative w-full max-w-4xl glass bg-navy/95 rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                        <div className="p-8 border-b border-white/10 flex items-center justify-between bg-white/5">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 rounded-2xl bg-emerald/10 flex items-center justify-center text-emerald">
-                                    <PlusCircle size={28} />
-                                </div>
-                                <h3 className="text-2xl font-black text-white italic uppercase">{t('coupons.create.title')}</h3>
-                            </div>
-                            <button onClick={() => setIsBuilderOpen(false)} className="text-gray-500 hover:text-white transition-colors">
-                                <X size={32} />
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-2 gap-12">
-                            {/* Left: Add Selection Form */}
-                            <div className="space-y-6">
-                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest">{t('coupons.builder.addMatch')}</h4>
-
-                                <div className="space-y-4">
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <TeamSearchInput
-                                            label={t('coupons.builder.homeTeam')}
-                                            value={tempSelection.home_team}
-                                            onChange={(value) => setTempSelection({ ...tempSelection, home_team: value })}
-                                            onTeamSelect={(team) => {
-                                                setTempSelection({ ...tempSelection, home_team: team.name });
-                                            }}
-                                            placeholder={t('coupons.builder.homeTeamPlaceholder')}
-                                        />
-                                        <TeamSearchInput
-                                            label={t('coupons.builder.awayTeam')}
-                                            value={tempSelection.away_team}
-                                            onChange={(value) => setTempSelection({ ...tempSelection, away_team: value })}
-                                            onTeamSelect={(team) => {
-                                                setTempSelection({ ...tempSelection, away_team: team.name });
-                                            }}
-                                            placeholder={t('coupons.builder.awayTeamPlaceholder')}
-                                        />
-                                    </div>
-
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">{t('coupons.builder.prediction')}</label>
-                                            <select
-                                                value={tempSelection.selection_type}
-                                                onChange={(e) => {
-                                                    const type = e.target.value;
-                                                    let newOdds = tempSelection.odds;
-
-                                                    // Auto-update odds based on selection type if we have real odds
-                                                    if (fixtureOdds) {
-                                                        switch (type) {
-                                                            case '1': newOdds = isNaN(fixtureOdds.home) ? 1.5 : fixtureOdds.home; break;
-                                                            case 'X': newOdds = isNaN(fixtureOdds.draw) ? 3.5 : fixtureOdds.draw; break;
-                                                            case '2': newOdds = isNaN(fixtureOdds.away) ? 5.0 : fixtureOdds.away; break;
-                                                            default: break;
-                                                        }
-                                                    }
-
-                                                    setTempSelection({ ...tempSelection, selection_type: type, odds: newOdds });
-                                                }}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-emerald/50"
-                                            >
-                                                <option value="1">
-                                                    {t('coupons.builder.homeWin')} {fixtureOdds?.home ? `(${fixtureOdds.home})` : ''}
-                                                </option>
-                                                <option value="X">
-                                                    {t('coupons.builder.draw')} {fixtureOdds?.draw ? `(${fixtureOdds.draw})` : ''}
-                                                </option>
-                                                <option value="2">
-                                                    {t('coupons.builder.awayWin')} {fixtureOdds?.away ? `(${fixtureOdds.away})` : ''}
-                                                </option>
-                                                <option value="1X">1X</option>
-                                                <option value="X2">X2</option>
-                                                <option value="12">12</option>
-                                            </select>
-                                            {loadingOdds && (
-                                                <p className="text-[10px] text-emerald flex items-center gap-1">
-                                                    <Loader2 size={10} className="animate-spin" />
-                                                    Chargement des cotes...
-                                                </p>
-                                            )}
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-tighter">{t('coupons.builder.odds')}</label>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                value={isNaN(tempSelection.odds) ? 1.5 : tempSelection.odds}
-                                                onChange={(e) => {
-                                                    const val = parseFloat(e.target.value);
-                                                    setTempSelection({ ...tempSelection, odds: !isNaN(val) && val > 0 ? val : 1.5 });
-                                                }}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-emerald/50"
-                                            />
-                                            {fixtureOdds && (
-                                                <p className="text-[10px] text-emerald">
-                                                    ✓ Cotes réelles chargées
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={addSelection}
-                                        className="w-full btn-secondary py-3 uppercase font-black text-xs tracking-widest cursor-pointer"
-                                    >
-                                        {t('coupons.builder.addToCoupon')}
-                                    </button>
-                                </div>
-
-                                <div className="p-6 bg-emerald/5 rounded-2xl border border-emerald/10">
-                                    <div className="flex items-center space-x-3 text-emerald mb-2">
-                                        <Zap size={16} />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">{t('coupons.builder.adviceTitle')}</span>
-                                    </div>
-                                    <p className="text-[11px] text-gray-400 italic">
-                                        {t('coupons.builder.advice')}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Right: Current selection list */}
-                            <div className="flex flex-col h-full space-y-6">
-                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest flex justify-between">
-                                    <span>{t('coupons.builder.yourCoupon')}</span>
-                                    <span>{newSelections.length} {t('coupons.builder.matches')}</span>
-                                </h4>
-
-                                <div className="flex-1 space-y-3 min-h-50">
-                                    {newSelections.length === 0 ? (
-                                        <div className="h-full flex flex-col items-center justify-center text-center opacity-30 border border-dashed border-white/10 rounded-2xl">
-                                            <Ticket size={48} className="mb-4" />
-                                            <p className="text-xs font-bold px-10">{t('coupons.builder.empty')}</p>
-                                        </div>
-                                    ) : (
-                                        newSelections.map((sel, idx) => (
-                                            <div key={idx} className="glass p-4 rounded-xl flex items-center justify-between group">
-                                                <div className="flex items-center space-x-4">
-                                                    <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center font-black text-xs text-white">
-                                                        {sel.selection_type}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-xs font-black text-white">{sel.home_team} {t('analyze.vs')} {sel.away_team}</p>
-                                                        <p className="text-[9px] font-black text-gray-500 uppercase">{t('coupons.builder.odds')}: {isNaN(sel.odds) ? '1.50' : Number(sel.odds).toFixed(2)}</p>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => removeSelection(idx)}
-                                                    className="text-gray-600 hover:text-red-500 transition-colors cursor-pointer"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </button>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-
-                                <div className="space-y-4 pt-4 border-t border-white/10">
-                                    <div className="flex justify-between items-end">
-                                        <div className="space-y-1">
-                                            <div className="space-y-1"></div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t('coupons.totalOdds')}</p>
-                                            <p className="text-2xl font-black text-white italic">
-                                                {newSelections.reduce((acc, s) => {
-                                                    const odds = isNaN(s.odds) ? 1.5 : s.odds;
-                                                    return acc * odds;
-                                                }, 1).toFixed(2)}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        disabled={newSelections.length === 0 || isCreating}
-                                        onClick={handleCreateCoupon}
-                                        className="w-full btn-primary py-4 flex items-center justify-center space-x-3 uppercase font-black text-xs tracking-widest cursor-pointer"
-                                    >
-                                        {isCreating ? <Loader2 className="animate-spin" /> : (
-                                            <>
-                                                <Send size={16} />
-                                                <span>{t('common.save')}</span>
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <CouponBuilder
+                isOpen={isBuilderOpen}
+                onClose={() => setIsBuilderOpen(false)}
+                newSelections={newSelections}
+                isCreating={isCreating}
+                fixtureOdds={fixtureOdds}
+                loadingOdds={loadingOdds}
+                tempSelection={tempSelection}
+                onTempSelectionChange={setTempSelection}
+                onAddSelection={addSelection}
+                onRemoveSelection={removeSelection}
+                onCreateCoupon={handleCreateCoupon}
+            />
         </div>
     );
 };

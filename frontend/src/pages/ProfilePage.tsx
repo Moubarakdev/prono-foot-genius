@@ -16,8 +16,10 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { useTranslation } from 'react-i18next';
 
 export const ProfilePage = () => {
+    const { t } = useTranslation();
     const { user, updateProfile, changePassword, isLoading, error } = useAuthStore();
 
     // Profile State

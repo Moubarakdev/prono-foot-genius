@@ -2,6 +2,7 @@ export const de = {
     // Common
     "common.loading": "Wird geladen...",
     "common.refreshing": "Aktualisierung...",
+    "common.viewAll": "Alle anzeigen",
 
     // Dashboard Home
     "dashboard.home.title": "DASHBOARD",
@@ -18,6 +19,7 @@ export const de = {
     "dashboard.stats.lastGain": "Letzter Gewinn",
     "dashboard.recent.title": "LETZTE ANALYSEN",
     "dashboard.recent.timeAgo": "Vor {{time}}",
+    "dashboard.recent.empty": "Noch keine Analysen. Beginnen Sie mit der Analyse eines Spiels!",
     "dashboard.upgrade.title": "Level Up",
     "dashboard.upgrade.description": "Schalten Sie den KI-Assistenten und unbegrenzte Analysen mit dem LIFETIME-Konto frei.",
     "dashboard.upgrade.button": "Angebote ansehen",

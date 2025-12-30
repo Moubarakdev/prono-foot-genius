@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # App
-    app_name: str = "FootIntel API"
+    app_name: str = "FootGenius API"
     debug: bool = False
     api_v1_str: str = "/api/v1"
     
@@ -29,9 +29,9 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     stripe_api_key: str = ""
     stripe_webhook_secret: str = ""
-    stripe_price_starter: str = ""  # Stripe Price ID for Starter plan
-    stripe_price_pro: str = ""  # Stripe Price ID for Pro plan
-    stripe_price_lifetime: str = ""  # Stripe Price ID for Lifetime (one-time)
+    stripe_price_starter: str = "price_1Sk0WHGdRbLVz7Fd6R3zBbUG"  # Stripe Price ID for Starter plan
+    stripe_price_pro: str = "price_1Sk0WXGdRbLVz7FdeFlYbHPx"  # Stripe Price ID for Pro plan
+    stripe_price_lifetime: str = "price_1Sk0WsGdRbLVz7FdyWyfWO2r"  # Stripe Price ID for Lifetime (one-time)
     moneroo_api_key: str = ""
     moneroo_webhook_secret: str = ""
     news_api_key: str = ""
@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_user: str = ""
     smtp_password: str = ""
-    smtp_from: str = "noreply@footintel.com"
+    smtp_from: str = "noreply@footgenius.com"
     smtp_tls: bool = True
     smtp_ssl: bool = False
     

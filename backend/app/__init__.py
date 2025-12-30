@@ -1,1 +1,1 @@
-# FootIntel API
+# FootGenius API

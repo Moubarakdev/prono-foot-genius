@@ -4,11 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { TrendingUp, Zap, BarChart3, Star, ChevronRight, Sparkles, ArrowRight, CheckCircle, Trophy, Target, Brain } from 'lucide-react';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { SupportedLeagues } from '../components/SupportedLeagues';
+import { useAuthStore } from '../features/auth/store/auth-store';
 import logo from '../assets/logo.png';
 
 export const LandingPage: React.FC = () => {
     const { t } = useTranslation();
     const [scrollY, setScrollY] = useState(0);
+    const { isAuthenticated } = useAuthStore();
 
     useEffect(() => {
         const handleScroll = () => setScrollY(window.scrollY);
@@ -41,13 +43,22 @@ export const LandingPage: React.FC = () => {
                             <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-emerald group-hover:w-full transition-all"></span>
                         </a>
                         <LanguageSwitcher />
-                        <Link to="/login" className="text-sm font-bold text-gray-400 hover:text-white transition-colors">
-                            {t('nav.login')}
-                        </Link>
-                        <Link to="/register" className="btn-primary px-8 py-3 text-xs relative overflow-hidden group">
-                            <span className="relative z-10">{t('nav.start')}</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-cyan to-emerald opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        </Link>
+                        {isAuthenticated ? (
+                            <Link to="/dashboard" className="btn-primary px-8 py-3 text-xs relative overflow-hidden group">
+                                <span className="relative z-10">{t('nav.dashboard')}</span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-cyan to-emerald opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link to="/login" className="text-sm font-bold text-gray-400 hover:text-white transition-colors">
+                                    {t('nav.login')}
+                                </Link>
+                                <Link to="/register" className="btn-primary px-8 py-3 text-xs relative overflow-hidden group">
+                                    <span className="relative z-10">{t('nav.start')}</span>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan to-emerald opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                </Link>
+                            </>
+                        )}
                     </nav>
                 </div>
             </header>

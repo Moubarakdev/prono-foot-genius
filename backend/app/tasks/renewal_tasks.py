@@ -41,7 +41,7 @@ def send_renewal_reminders_task(days_before: int = 7):
                         continue
                     
                     # URL de renouvellement
-                    renewal_url = f"https://footintel.com/pricing?renew={user.subscription}"
+                    renewal_url = f"https://footgenius.com/pricing?renew={user.subscription}"
                     
                     # Générer l'email
                     subject = renewal_reminder_service.get_renewal_email_subject(lang='fr')

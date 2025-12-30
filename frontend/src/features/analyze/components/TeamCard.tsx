@@ -1,5 +1,5 @@
 import React from 'react';
-import { type Team } from '../services/analyze-service';
+import { type Team } from '../../../types';
 
 interface TeamCardProps {
     team: Team;

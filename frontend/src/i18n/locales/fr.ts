@@ -2,6 +2,7 @@ export const fr = {
     // Common
     "common.loading": "Chargement...",
     "common.refreshing": "Actualisation...",
+    "common.viewAll": "Tout voir",
 
     // Dashboard Home
     "dashboard.home.title": "TABLEAU DE BORD",
@@ -17,8 +18,7 @@ export const fr = {
     "dashboard.stats.tickets": "tickets",
     "dashboard.stats.lastGain": "Dernière victoire",
     "dashboard.recent.title": "DERNIÈRES ANALYSES",
-    "dashboard.recent.timeAgo": "Il y a {{time}}",
-    "dashboard.upgrade.title": "Passez au niveau supérieur",
+    "dashboard.recent.timeAgo": "Il y a {{time}}",    "dashboard.recent.empty": "Aucune analyse pour le moment. Commencez par analyser un match !",    "dashboard.upgrade.title": "Passez au niveau supérieur",
     "dashboard.upgrade.description": "Débloquez l'assistant IA et les analyses illimitées avec le compte LIFETIME.",
     "dashboard.upgrade.button": "Voir les offres",
 
@@ -118,6 +118,7 @@ export const fr = {
     "nav.pricing": "Tarifs",
     "nav.login": "Connexion",
     "nav.start": "COMMENCER",
+    "nav.dashboard": "Tableau de bord",
 
     // Dashboard
     "dashboard.title": "Tableau de bord",
@@ -148,12 +149,8 @@ export const fr = {
     "coupons.analysis.global": "Analyse Globale",
     "coupons.analysis.weakLink": "Maillon Faible",
     "coupons.analysis.matchInsights": "Insights par match",
-    "coupons.probability": "Probabilité",
-    "coupons.analysis.global": "Analyse Globale",
-    "coupons.analysis.weakLink": "Maillon Faible",
-    "coupons.analysis.matchInsights": "Insights par match",
     "coupons.share": "Partager ce Coupon",
-    "coupons.share.title": "Mon Coupon FootIntel",
+    "coupons.share.title": "Mon Coupon FootGenius",
     "coupons.share.text": "💎 Coupon analysé par IA - Cote {{odds}} - Probabilité {{proba}}%",
     "coupons.share.success": "✅ Coupon partagé avec succès!",
     "coupons.share.copied": "✅ Lien copié dans le presse-papiers!",
@@ -201,7 +198,7 @@ export const fr = {
     "analyze.result.draw": "Match Nul (X)",
     "analyze.result.currentOdds": "Cote Actuelle",
     "analyze.result.expectedValue": "Valeur Attendue (EV)",
-    "analyze.result.basedOnProba": "Basé sur les probabilités FootIntel",
+    "analyze.result.basedOnProba": "Basé sur les probabilités FootGenius",
     "analyze.result.mathematicalAdvantage": "Cette cote est mathématiquement avantageuse à long terme.",
     "analyze.nextMatches": "Prochains matchs de {{team}}",
     "analyze.vs": "VS",
@@ -267,7 +264,7 @@ export const fr = {
     // Verify OTP
     "verify.hero.title": "SÉCURISEZ VOTRE ACCÈS AUX",
     "verify.hero.highlight": "MEILLEURES ANALYSES",
-    "verify.hero.description": "Chez FootIntel, nous prenons votre sécurité au sérieux. Vérifiez votre email pour commencer à parier avec une intelligence d'avance.",
+    "verify.hero.description": "Chez FootGenius, nous prenons votre sécurité au sérieux. Vérifiez votre email pour commencer à parier avec une intelligence d'avance.",
 
     // Subscription Management
     "subscription.title": "Gestion de l'abonnement",

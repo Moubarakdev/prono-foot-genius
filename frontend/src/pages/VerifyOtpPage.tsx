@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../features/auth/store/auth-store';
 import { ShieldCheck, ArrowRight, RefreshCw } from 'lucide-react';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
@@ -7,6 +8,7 @@ import logo from '../assets/logo.png';
 import { motion } from 'framer-motion';
 
 export const VerifyOtpPage = () => {
+    const { t } = useTranslation();
     const [otpValues, setOtpValues] = useState(['', '', '', '', '', '']);
     const [email, setEmail] = useState('');
     const { verifyOtp, resendOtp, isLoading, error, user } = useAuthStore();
