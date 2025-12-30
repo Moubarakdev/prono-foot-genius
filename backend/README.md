@@ -1,68 +1,75 @@
-# FootGenius API
+# CouponFoot Backend API
 
-API d'analyse de matchs de football avec Intelligence Artificielle.
+The backend for CouponFoot, built with **FastAPI**, **SQLAlchemy**, and **Celery**.
 
-## Stack
+##  Getting Started
 
-- **Framework**: FastAPI
-- **Base de données**: PostgreSQL + Redis
-- **IA**: Google Gemini
-- **Données football**: API-Football
+### Prerequisites
+- Python 3.11+
+- MySQL 8.0
+- Redis
 
-## Installation
+### Local Development Setup
 
-### 1. Cloner et configurer
+1. **Create Virtual Environment**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Windows: venv\Scripts\activate
+   ```
+
+2. **Install Dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Environment Variables**
+   Copy `.env.example` to `.env` and configure:
+   ```bash
+   cp .env.example .env
+   ```
+   *Make sure to set `DATABASE_URL` to your local MySQL instance.*
+
+4. **Run Migrations**
+   ```bash
+   alembic upgrade head
+   ```
+
+5. **Start Server**
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+
+##  Testing
+
+We use `pytest` for testing.
 
 ```bash
-# Copier le fichier d'environnement
-cp .env.example .env
+# Run all tests
+pytest
 
-# Éditer .env avec vos clés API
+# Run specific test file
+pytest test_hybrid.py
 ```
 
-### 2. Lancer avec Docker
+##  Database Migrations
+
+To create a new migration after modifying models:
 
 ```bash
-docker-compose up -d
+alembic revision --autogenerate -m "Description of changes"
+alembic upgrade head
 ```
 
-L'API sera disponible sur http://localhost:8000
+##  AI & Data Providers
 
-## Documentation API
+The backend uses a **Provider Pattern** to abstract external services.
 
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+- **AI Providers**: Located in `app/providers/ai/`.
+- **Football Providers**: Located in `app/providers/football/`.
 
-## Endpoints
+To switch providers, update the configuration or environment variables.
 
-### Auth
-- `POST /api/v1/auth/register` - Inscription
-- `POST /api/v1/auth/login` - Connexion
-- `GET /api/v1/auth/me` - Profil utilisateur
+##  Documentation
 
-### Analyse
-- `POST /api/v1/analyze/match` - Analyser un match
-- `GET /api/v1/analyze/history` - Historique
-- `GET /api/v1/analyze/{id}` - Détails analyse
-
-### Coupons
-- `POST /api/v1/coupons/create` - Créer coupon
-- `GET /api/v1/coupons/` - Liste coupons
-- `GET /api/v1/coupons/{id}` - Détails
-- `DELETE /api/v1/coupons/{id}` - Supprimer
-
-### Football
-- `GET /api/v1/football/fixtures` - Matchs
-- `GET /api/v1/football/leagues` - Compétitions
-- `GET /api/v1/football/teams/search` - Recherche équipe
-- `GET /api/v1/football/h2h` - Face à face
-
-## Variables d'environnement
-
-| Variable | Description |
-|----------|-------------|
-| `DATABASE_URL` | URL PostgreSQL |
-| `REDIS_URL` | URL Redis |
-| `JWT_SECRET` | Secret JWT |
-| `FOOTBALL_API_KEY` | Clé API-Football |
-| `GEMINI_API_KEY` | Clé Google Gemini |
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
